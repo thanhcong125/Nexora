@@ -1,0 +1,2495 @@
+<!DOCTYPE html>
+<html class="light" lang="vi">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>Nexora AI | Family Learning OS</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <!-- GSAP + ScrollTrigger -->
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js"></script>
+    <!-- Fonts - Be Vietnam Pro with Vietnamese subset support -->
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet"/>
+    <!-- Material Symbols -->
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+    
+    <!-- Custom Tailwind Configuration to match Soft Neo-Brutalism Design System -->
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "brutalist-yellow": "#FBBF24", // Warm gold/yellow
+                        "brutalist-orange": "#FF7A45", // Bright coral/orange
+                        "brutalist-green": "#10B981",  // Fresh herb green
+                        "brutalist-blue": "#0284C7",   // Cyber/ocean blue
+                        "brutalist-purple": "#8B5CF6", // Bright violet
+                        "brutalist-pink": "#EC4899",   // Hot pink
+                        "brutalist-cream": "#FAF9F5",  // Base background cream
+                        "brutalist-dark": "#0F172A",   // Slate-900 border/text
+                        "brutalist-light-slate": "#F1F5F9" // Secondary bg
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "12px",
+                        "2xl": "16px",
+                        "3xl": "24px",
+                        "full": "9999px"
+                    },
+                    spacing: {
+                        "margin-mobile": "20px",
+                        "gutter": "24px",
+                        "container-max": "1440px",
+                        "margin-desktop": "64px",
+                        "unit": "4px"
+                    },
+                    fontFamily: {
+                        "headline-lg": ["Be Vietnam Pro"],
+                        "label-md": ["Inter"],
+                        "headline-md": ["Be Vietnam Pro"],
+                        "label-sm": ["Inter"],
+                        "display-lg": ["Be Vietnam Pro"],
+                        "body-lg": ["Inter"],
+                        "body-md": ["Inter"],
+                        "mono": ["JetBrains Mono"]
+                    }
+                },
+            },
+        }
+    </script>
+    <style>
+        body {
+            background-color: #FAF9F5;
+            color: #0F172A;
+            overflow-x: hidden;
+            font-family: 'Be Vietnam Pro', sans-serif;
+        }
+        
+        .font-vietnam { font-family: 'Be Vietnam Pro', sans-serif; }
+        .font-mono { font-family: 'JetBrains Mono', monospace; }
+
+        /* =============================================
+           GRID PATTERN BACKGROUND (TID style)
+           ============================================= */
+        .grid-bg {
+            position: relative;
+            background-color: #FBBF24;
+        }
+        .grid-bg::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-image:
+                linear-gradient(rgba(15,23,42,0.08) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(15,23,42,0.08) 1px, transparent 1px);
+            background-size: 40px 40px;
+            pointer-events: none;
+            z-index: 0;
+        }
+        .grid-bg > * { position: relative; z-index: 1; }
+
+        /* =============================================
+           HEADER — transparent → solid on scroll
+           ============================================= */
+        #landing-header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            height: 68px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 2rem;
+            background: transparent;
+            border-bottom: 3px solid transparent;
+            transition: background 0.35s ease, border-color 0.35s ease, backdrop-filter 0.35s ease, box-shadow 0.35s ease;
+        }
+        #landing-header.scrolled {
+            background: rgba(250,249,245,0.92);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom-color: #0F172A;
+            box-shadow: 0 4px 0 #0F172A;
+        }
+
+        /* =============================================
+           MASCOT — cursor follower
+           ============================================= */
+        #mascot {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 90px;
+            height: 90px;
+            pointer-events: none;
+            z-index: 999;
+            /* No CSS transform here — GSAP controls position entirely */
+            will-change: transform;
+            transition: opacity 0.3s ease;
+            opacity: 0;
+        }
+        #mascot.visible { opacity: 1; }
+
+        /* Mascot idle bounce */
+        @keyframes mascot-idle-bounce {
+            0%,100% { margin-top: 0; }
+            50% { margin-top: -8px; }
+        }
+
+        /* Neo-Brutalist Card Styling */
+        .brutalist-card {
+            background: #ffffff;
+            border: 3px solid #0F172A;
+            box-shadow: 6px 6px 0px 0px #0F172A;
+            border-radius: 16px;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .brutalist-card:hover {
+            transform: translate(-2px, -2px);
+            box-shadow: 8px 8px 0px 0px #0F172A;
+        }
+
+        /* Interactive Neo-Brutalist Button */
+        .brutalist-btn {
+            border: 3px solid #0F172A;
+            box-shadow: 4px 4px 0px 0px #0F172A;
+            transition: all 0.15s ease-in-out;
+        }
+        .brutalist-btn:hover {
+            transform: translate(-1px, -1px);
+            box-shadow: 5px 5px 0px 0px #0F172A;
+        }
+        .brutalist-btn:active {
+            transform: translate(3px, 3px);
+            box-shadow: 1px 1px 0px 0px #0F172A;
+        }
+
+        .brutalist-btn-sm {
+            border: 2px solid #0F172A;
+            box-shadow: 3px 3px 0px 0px #0F172A;
+            transition: all 0.1s ease-in-out;
+        }
+        .brutalist-btn-sm:hover {
+            transform: translate(-1px, -1px);
+            box-shadow: 4px 4px 0px 0px #0F172A;
+        }
+        .brutalist-btn-sm:active {
+            transform: translate(2px, 2px);
+            box-shadow: 1px 1px 0px 0px #0F172A;
+        }
+
+        .progress-ring {
+            transition: stroke-dashoffset 0.5s ease;
+            transform: rotate(-90deg);
+            transform-origin: 50% 50%;
+        }
+
+        @keyframes pulse-fire {
+            0%, 100% { transform: scale(1); filter: drop-shadow(0 0 2px rgba(255,122,69,0.3)); }
+            50% { transform: scale(1.08); filter: drop-shadow(0 0 10px rgba(255,122,69,0.6)); }
+        }
+        .animate-fire { animation: pulse-fire 3s infinite ease-in-out; }
+
+        /* Mascot bounce idle */
+        @keyframes mascot-float {
+            0%, 100% { transform: translate(-50%, -50%) translateY(0px); }
+            50% { transform: translate(-50%, -50%) translateY(-6px); }
+        }
+        #mascot.idle { animation: mascot-float 2.5s ease-in-out infinite; }
+
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #FAF9F5; border-left: 2px solid #0F172A; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #0F172A; border-radius: 4px; }
+
+        @keyframes toast-slide {
+            0% { transform: translateY(20px); opacity: 0; }
+            100% { transform: translateY(0); opacity: 1; }
+        }
+        .toast-animate { animation: toast-slide 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+
+        /* View transitions */
+        .view-section { transition: opacity 0.4s ease, transform 0.4s ease; }
+        .hidden-view { display: none !important; opacity: 0; transform: translateY(10px); }
+
+        /* Hero padded below fixed header */
+        .hero-section { padding-top: 68px; }
+    </style>
+</head>
+<body class="selection:bg-brutalist-yellow/50">
+
+    <!-- Notification Toast System -->
+    <div id="toast-container" class="fixed bottom-8 right-8 z-[100] flex flex-col gap-3"></div>
+
+    <!-- ==============================================
+         LANDING PAGE VIEW
+         ============================================== -->
+    <div id="landing-view" class="view-section min-h-screen flex flex-col">
+        <!-- ====== HEADER (fixed, transparent → solid) ====== -->
+        <header id="landing-header">
+            <div class="flex items-center gap-3">
+                <span class="font-vietnam text-2xl font-black text-brutalist-dark tracking-tight">Nexora</span>
+                <span class="text-[10px] font-mono font-black text-white bg-brutalist-purple border-2 border-brutalist-dark px-2 py-0.5 rounded-full">Family OS</span>
+            </div>
+            <nav class="hidden lg:flex items-center gap-8 font-vietnam font-bold text-sm text-brutalist-dark">
+                <a href="#features-section" class="hover:text-brutalist-purple transition-colors">Tính năng</a>
+                <a href="#how-section" class="hover:text-brutalist-purple transition-colors">Cách hoạt động</a>
+                <a href="#cta-section" class="hover:text-brutalist-purple transition-colors">Bắt đầu</a>
+            </nav>
+            <div class="flex items-center gap-3">
+                <a href="/auth" class="px-4 py-2 text-brutalist-dark font-bold text-sm hover:underline">Đăng nhập</a>
+                <a href="/auth" class="px-5 py-2.5 bg-brutalist-yellow text-brutalist-dark font-black text-sm rounded-xl brutalist-btn">Dùng miễn phí →</a>
+            </div>
+        </header>
+
+        <!-- ====== HERO (grid bg + padding for fixed header) ====== -->
+        <section class="w-full border-b-4 border-brutalist-dark grid-bg hero-section">
+            <div class="max-w-6xl mx-auto px-8 py-20 flex flex-col lg:flex-row items-center gap-12">
+                <!-- Left: Copy -->
+                <div class="flex-1 flex flex-col gap-6">
+                    <span class="text-xs font-mono font-black text-brutalist-dark bg-white border-2 border-brutalist-dark px-3 py-1 rounded-full w-fit shadow-[2px_2px_0_#0F172A]">🧠 AI Learning OS cho gia đình Việt</span>
+                    <h1 class="font-vietnam text-5xl lg:text-6xl font-black text-brutalist-dark leading-[1.1] tracking-tight">
+                        Xây dựng<br/>thói quen học<br/>cùng gia đình.
+                    </h1>
+                    <p class="text-base font-semibold text-brutalist-dark/70 max-w-sm leading-relaxed">
+                        AI cá nhân hóa lộ trình học cho từng con. Cha mẹ theo dõi, cùng tích điểm, cùng nhận quà.
+                    </p>
+                    <div class="flex flex-wrap gap-3 mt-2">
+                        <a href="/auth" class="px-7 py-3.5 bg-brutalist-dark text-white font-black text-sm rounded-2xl brutalist-btn uppercase tracking-wide">Bắt đầu miễn phí</a>
+                        <a href="#features-section" class="px-7 py-3.5 bg-white text-brutalist-dark font-black text-sm rounded-2xl brutalist-btn uppercase tracking-wide">Xem tính năng ↓</a>
+                    </div>
+                </div>
+                <!-- Right: Visual card -->
+                <div class="flex-shrink-0 w-full max-w-xs">
+                    <div class="brutalist-card p-6 bg-white relative">
+                        <!-- Live badge -->
+                        <div class="flex items-center gap-2 mb-5">
+                            <span class="w-2.5 h-2.5 rounded-full bg-brutalist-green animate-pulse inline-block"></span>
+                            <span class="text-xs font-mono font-black text-slate-500 uppercase tracking-widest">Live Behavior Feed</span>
+                        </div>
+                        <!-- Bar chart mockup -->
+                        <div class="flex items-end gap-1.5 h-16 mb-4">
+                            <div class="flex-1 bg-brutalist-purple/30 rounded-t border border-brutalist-dark" style="height:50%"></div>
+                            <div class="flex-1 bg-brutalist-purple/50 rounded-t border border-brutalist-dark" style="height:70%"></div>
+                            <div class="flex-1 bg-brutalist-purple/70 rounded-t border border-brutalist-dark" style="height:90%"></div>
+                            <div class="flex-1 bg-brutalist-blue/80 rounded-t border border-brutalist-dark" style="height:75%"></div>
+                            <div class="flex-1 bg-brutalist-purple/80 rounded-t border border-brutalist-dark" style="height:100%"></div>
+                            <div class="flex-1 bg-brutalist-blue/60 rounded-t border border-brutalist-dark" style="height:60%"></div>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="font-vietnam font-black text-brutalist-dark text-base">Tập trung: 92%</p>
+                                <p class="text-xs text-slate-500 font-bold mt-0.5">Đỉnh cao phiên học hôm nay</p>
+                            </div>
+                            <span class="material-symbols-outlined text-3xl text-brutalist-orange animate-fire" style="font-variation-settings:'FILL' 1">local_fire_department</span>
+                        </div>
+                    </div>
+                    <!-- Floating streak pill -->
+                    <div class="mt-3 mx-auto flex items-center gap-2 bg-brutalist-dark text-white px-4 py-2 rounded-full border-2 border-brutalist-dark w-fit shadow-[3px_3px_0_#FBBF24]">
+                        <span class="text-brutalist-yellow font-black text-sm">🔥 12 ngày</span>
+                        <span class="text-xs font-bold text-white/70">chuỗi học liên tiếp</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ====== MASCOT — sun character follows cursor ====== -->
+        <div id="mascot" aria-hidden="true">
+            <!--
+              SVG viewBox 0 0 120 120, center at (60,60)
+              All rays are identical rects rotated around (60,60)
+              Body circle centered at (60,60)
+            -->
+            <svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg" style="width:90px;height:90px;filter:drop-shadow(3px 4px 0 #0F172A);overflow:visible;">
+                <!-- Rays group: 8 rays, each is a rounded rect centered at x=57 (width=6 → center x=60), y=2 to y=18 -->
+                <!-- All rotated around (60,60) -->
+                <g id="mascot-rays">
+                    <rect x="57" y="2"  width="6" height="18" rx="3" fill="#FBBF24" stroke="#0F172A" stroke-width="2" transform="rotate(0   60 60)"/>
+                    <rect x="57" y="2"  width="6" height="18" rx="3" fill="#FBBF24" stroke="#0F172A" stroke-width="2" transform="rotate(45  60 60)"/>
+                    <rect x="57" y="2"  width="6" height="18" rx="3" fill="#FBBF24" stroke="#0F172A" stroke-width="2" transform="rotate(90  60 60)"/>
+                    <rect x="57" y="2"  width="6" height="18" rx="3" fill="#FBBF24" stroke="#0F172A" stroke-width="2" transform="rotate(135 60 60)"/>
+                    <rect x="57" y="2"  width="6" height="18" rx="3" fill="#FBBF24" stroke="#0F172A" stroke-width="2" transform="rotate(180 60 60)"/>
+                    <rect x="57" y="2"  width="6" height="18" rx="3" fill="#FBBF24" stroke="#0F172A" stroke-width="2" transform="rotate(225 60 60)"/>
+                    <rect x="57" y="2"  width="6" height="18" rx="3" fill="#FBBF24" stroke="#0F172A" stroke-width="2" transform="rotate(270 60 60)"/>
+                    <rect x="57" y="2"  width="6" height="18" rx="3" fill="#FBBF24" stroke="#0F172A" stroke-width="2" transform="rotate(315 60 60)"/>
+                </g>
+                <!-- Body: centered at (60,60), radius 26 -->
+                <circle cx="60" cy="60" r="26" fill="#FBBF24" stroke="#0F172A" stroke-width="3"/>
+                <!-- Left eye -->
+                <circle cx="52" cy="56" r="5" fill="white" stroke="#0F172A" stroke-width="2"/>
+                <circle id="ml-pupil" cx="53" cy="57" r="2.5" fill="#0F172A"/>
+                <!-- Right eye -->
+                <circle cx="68" cy="56" r="5" fill="white" stroke="#0F172A" stroke-width="2"/>
+                <circle id="mr-pupil" cx="69" cy="57" r="2.5" fill="#0F172A"/>
+                <!-- Smile -->
+                <path d="M 50 68 Q 60 76 70 68" stroke="#0F172A" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+                <!-- Blush -->
+                <ellipse cx="46" cy="66" rx="5" ry="3" fill="#FF7A45" opacity="0.5"/>
+                <ellipse cx="74" cy="66" rx="5" ry="3" fill="#FF7A45" opacity="0.5"/>
+            </svg>
+        </div>
+
+        <!-- ====== TRUST STRIP ====== -->
+        <section class="w-full bg-white border-b-3 border-brutalist-dark" style="border-bottom:3px solid #0F172A;">
+            <div class="max-w-6xl mx-auto px-8 py-5 flex flex-wrap items-center justify-center gap-8 text-xs font-black text-slate-400 uppercase tracking-widest">
+                <span>🎓 500+ học sinh</span>
+                <span class="w-px h-4 bg-slate-200"></span>
+                <span>👨‍👩‍👧 200+ gia đình</span>
+                <span class="w-px h-4 bg-slate-200"></span>
+                <span>⭐ 4.9/5 đánh giá</span>
+                <span class="w-px h-4 bg-slate-200"></span>
+                <span>🆓 Dùng thử miễn phí</span>
+            </div>
+        </section>
+
+        <!-- ====== FEATURES ====== -->
+        <!-- reveal classes added to children -->
+        <section id="features-section" class="w-full bg-brutalist-cream border-b-4 border-brutalist-dark py-20">
+            <div class="max-w-6xl mx-auto px-8">
+                <div class="text-center mb-14 reveal">
+                    <span class="text-xs font-mono font-black text-brutalist-purple uppercase tracking-widest">Tính năng</span>
+                    <h2 class="font-vietnam text-4xl font-black text-brutalist-dark mt-2">Mọi thứ con cần để học tốt</h2>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <!-- Feature 1 -->
+                    <div class="brutalist-card p-8 bg-white flex flex-col gap-4 hover:bg-brutalist-green/5 reveal">
+                        <div class="w-12 h-12 rounded-2xl bg-brutalist-green/15 border-2 border-brutalist-dark flex items-center justify-center shadow-[3px_3px_0_#0F172A]">
+                            <span class="material-symbols-outlined text-2xl text-brutalist-green" style="font-variation-settings:'FILL' 1">psychology</span>
+                        </div>
+                        <h3 class="font-vietnam text-xl font-black text-brutalist-dark">AI Cá nhân hóa</h3>
+                        <p class="text-sm text-slate-500 leading-relaxed">Phân tích hành vi học và đề xuất nhiệm vụ phù hợp với từng con mỗi ngày.</p>
+                    </div>
+                    <!-- Feature 2 -->
+                    <div class="brutalist-card p-8 bg-white flex flex-col gap-4 hover:bg-brutalist-yellow/5 reveal">
+                        <div class="w-12 h-12 rounded-2xl bg-brutalist-yellow/30 border-2 border-brutalist-dark flex items-center justify-center shadow-[3px_3px_0_#0F172A]">
+                            <span class="material-symbols-outlined text-2xl text-brutalist-dark" style="font-variation-settings:'FILL' 1">family_restroom</span>
+                        </div>
+                        <h3 class="font-vietnam text-xl font-black text-brutalist-dark">Gắn kết Gia đình</h3>
+                        <p class="text-sm text-slate-500 leading-relaxed">Cha mẹ nhận báo cáo, tặng sao thưởng và cùng con giữ chuỗi ngày học tập.</p>
+                    </div>
+                    <!-- Feature 3 -->
+                    <div class="brutalist-card p-8 bg-white flex flex-col gap-4 hover:bg-brutalist-purple/5 reveal">
+                        <div class="w-12 h-12 rounded-2xl bg-brutalist-purple/15 border-2 border-brutalist-dark flex items-center justify-center shadow-[3px_3px_0_#0F172A]">
+                            <span class="material-symbols-outlined text-2xl text-brutalist-purple" style="font-variation-settings:'FILL' 1">stars</span>
+                        </div>
+                        <h3 class="font-vietnam text-xl font-black text-brutalist-dark">Hệ thống Sao & Quà</h3>
+                        <p class="text-sm text-slate-500 leading-relaxed">Hoàn thành nhiệm vụ → nhận sao → đổi quà do bố mẹ tạo. Tạo động lực thật sự.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ====== HOW IT WORKS ====== -->
+        <section id="how-section" class="w-full bg-white border-b-4 border-brutalist-dark py-20">
+            <div class="max-w-6xl mx-auto px-8">
+                <div class="text-center mb-14 reveal">
+                    <span class="text-xs font-mono font-black text-brutalist-orange uppercase tracking-widest">Cách hoạt động</span>
+                    <h2 class="font-vietnam text-4xl font-black text-brutalist-dark mt-2">3 bước đơn giản</h2>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-0 md:gap-8 relative">
+                    <!-- Connector line (desktop) -->
+                    <div class="hidden md:block absolute top-10 left-1/6 right-1/6 h-0.5 bg-brutalist-dark" style="left:16.66%;right:16.66%;top:40px;"></div>
+
+                    <!-- Step 1 -->
+                    <div class="flex flex-col items-center text-center gap-4 p-6 reveal-left">
+                        <div class="w-20 h-20 rounded-3xl bg-brutalist-yellow border-3 border-brutalist-dark flex items-center justify-center shadow-[4px_4px_0_#0F172A] relative z-10" style="border-width:3px;">
+                            <span class="font-vietnam text-3xl font-black text-brutalist-dark">1</span>
+                        </div>
+                        <h3 class="font-vietnam text-lg font-black text-brutalist-dark">Tạo tài khoản</h3>
+                        <p class="text-sm text-slate-500">Đăng ký miễn phí trong 30 giây. Chọn vai trò học sinh hoặc phụ huynh.</p>
+                    </div>
+                    <!-- Step 2 -->
+                    <div class="flex flex-col items-center text-center gap-4 p-6 reveal">
+                        <div class="w-20 h-20 rounded-3xl bg-brutalist-orange border-3 border-brutalist-dark flex items-center justify-center shadow-[4px_4px_0_#0F172A] relative z-10" style="border-width:3px;">
+                            <span class="font-vietnam text-3xl font-black text-white">2</span>
+                        </div>
+                        <h3 class="font-vietnam text-lg font-black text-brutalist-dark">Nhận lộ trình</h3>
+                        <p class="text-sm text-slate-500">AI phân tích và tạo kế hoạch học tập cá nhân hóa phù hợp với con.</p>
+                    </div>
+                    <!-- Step 3 -->
+                    <div class="flex flex-col items-center text-center gap-4 p-6 reveal-right">
+                        <div class="w-20 h-20 rounded-3xl bg-brutalist-green border-3 border-brutalist-dark flex items-center justify-center shadow-[4px_4px_0_#0F172A] relative z-10" style="border-width:3px;">
+                            <span class="font-vietnam text-3xl font-black text-white">3</span>
+                        </div>
+                        <h3 class="font-vietnam text-lg font-black text-brutalist-dark">Học & nhận quà</h3>
+                        <p class="text-sm text-slate-500">Hoàn thành nhiệm vụ hàng ngày, tích sao và đổi phần thưởng từ bố mẹ.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ====== CTA ====== -->
+        <section id="cta-section" class="w-full bg-brutalist-dark py-20">
+            <div class="max-w-2xl mx-auto px-8 text-center flex flex-col items-center gap-6 reveal-scale">
+                <span class="text-5xl">🚀</span>
+                <h2 class="font-vietnam text-4xl font-black text-white leading-tight">Bắt đầu hành trình<br/>học tập của con ngay hôm nay.</h2>
+                <p class="text-slate-400 font-semibold text-base">Miễn phí. Không cần thẻ tín dụng. Bắt đầu trong 30 giây.</p>
+                <div class="flex flex-wrap gap-3 justify-center mt-2">
+                    <a href="/auth" class="px-8 py-4 bg-brutalist-yellow text-brutalist-dark font-black text-sm rounded-2xl uppercase tracking-wide brutalist-btn">Tạo tài khoản miễn phí</a>
+                    <a href="/auth" class="px-8 py-4 bg-transparent text-white font-black text-sm rounded-2xl uppercase tracking-wide border-3 border-white/30 hover:border-white transition-colors" style="border-width:2px;border-color:rgba(255,255,255,0.3);">Đăng nhập</a>
+                </div>
+            </div>
+        </section>
+
+        <!-- ====== FOOTER ====== -->
+        <footer class="w-full bg-white border-t-4 border-brutalist-dark py-8 px-8">
+            <div class="max-w-6xl mx-auto flex flex-wrap justify-between items-center gap-4">
+                <div class="flex items-center gap-2">
+                    <span class="font-vietnam text-xl font-black text-brutalist-dark">Nexora</span>
+                    <span class="text-[10px] font-mono text-slate-400">© 2026 All rights reserved.</span>
+                </div>
+                <div class="flex gap-6 text-xs font-bold text-slate-500">
+                    <a href="#" class="hover:text-brutalist-dark transition-colors">Về chúng tôi</a>
+                    <a href="#" class="hover:text-brutalist-dark transition-colors">Chính sách bảo mật</a>
+                    <a href="#" class="hover:text-brutalist-dark transition-colors">Điều khoản</a>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <!-- ===================================================
+         GSAP ANIMATIONS — Landing Page
+         =================================================== -->
+    <script>
+    (function initLandingAnimations() {
+        gsap.registerPlugin(ScrollTrigger);
+
+        /* ---- 1. HEADER: transparent → solid on scroll ---- */
+        const header = document.getElementById('landing-header');
+        if (header) {
+            window.addEventListener('scroll', () => {
+                header.classList.toggle('scrolled', window.scrollY > 20);
+            }, { passive: true });
+        }
+
+        /* ---- 2. HERO elements animate in on load ---- */
+        const heroLeft  = document.querySelector('#landing-view .hero-section .flex-1');
+        const heroRight = document.querySelector('#landing-view .hero-section .flex-shrink-0');
+        if (heroLeft)  gsap.from(heroLeft,  { opacity: 0, x: -60, duration: 0.9, ease: 'power3.out', delay: 0.15 });
+        if (heroRight) gsap.from(heroRight, { opacity: 0, x: 60,  duration: 0.9, ease: 'power3.out', delay: 0.30 });
+
+        /* ---- 3. SCROLL REVEAL ----
+           Strategy: GSAP sets initial hidden state (NOT CSS), then animates to visible.
+           This avoids the clearProps bug where CSS opacity:0 re-hides after animation.
+        ---- */
+        function revealSetup(selector, fromVars, stagger) {
+            const els = gsap.utils.toArray('#landing-view ' + selector);
+            if (!els.length) return;
+            // Set initial hidden state via GSAP
+            gsap.set(els, fromVars);
+            // Animate each to visible when scrolled into view
+            els.forEach((el, i) => {
+                gsap.to(el, {
+                    scrollTrigger: { trigger: el, start: 'top 90%', toggleActions: 'play none none none' },
+                    opacity: 1, x: 0, y: 0, scale: 1,
+                    duration: 0.7,
+                    delay: stagger ? i * 0.12 : 0,
+                    ease: 'power2.out'
+                });
+            });
+        }
+
+        revealSetup('.reveal',       { opacity: 0, y: 40 },            true);
+        revealSetup('.reveal-left',  { opacity: 0, x: -50 },           false);
+        revealSetup('.reveal-right', { opacity: 0, x: 50 },            false);
+        revealSetup('.reveal-scale', { opacity: 0, scale: 0.85 },      false);
+
+        /* ---- 4. MASCOT — mouse follower + eye tracking ---- */
+        const mascot = document.getElementById('mascot');
+        if (!mascot) return;
+
+        const HALF = 45; // half of mascot 90px → center the element on cursor
+        let mx = window.innerWidth  / 2;
+        let my = window.innerHeight / 2;
+        let cx = mx, cy = my;
+        let idleTimer;
+        let isIdle = false;
+
+        // Initial position (center of screen)
+        gsap.set(mascot, { x: mx - HALF, y: my - HALF });
+
+        // Fade in after 800ms
+        setTimeout(() => mascot.classList.add('visible'), 800);
+
+        document.addEventListener('mousemove', (e) => {
+            mx = e.clientX;
+            my = e.clientY;
+
+            // Reset idle bounce
+            if (isIdle) {
+                isIdle = false;
+                gsap.killTweensOf(mascot, 'y');
+            }
+            clearTimeout(idleTimer);
+            idleTimer = setTimeout(() => {
+                isIdle = true;
+                gsap.to(mascot, {
+                    y: cy - HALF - 8,
+                    duration: 1.2,
+                    ease: 'sine.inOut',
+                    yoyo: true,
+                    repeat: -1
+                });
+            }, 2000);
+
+            // Eye tracking — pupils follow cursor relative to mascot center
+            const mcx = cx; // mascot center x
+            const mcy = cy; // mascot center y
+            const dx = mx - mcx;
+            const dy = my - mcy;
+            const dist = Math.hypot(dx, dy) || 1;
+            const shift = Math.min(2, dist / 40);
+            const px = (dx / dist) * shift;
+            const py = (dy / dist) * shift;
+
+            const lp = document.getElementById('ml-pupil');
+            const rp = document.getElementById('mr-pupil');
+            // Base positions: left pupil (53,57), right pupil (69,57)
+            if (lp) { lp.setAttribute('cx', 53 + px); lp.setAttribute('cy', 57 + py); }
+            if (rp) { rp.setAttribute('cx', 69 + px); rp.setAttribute('cy', 57 + py); }
+        });
+
+        // Smooth lerp follow via GSAP ticker
+        gsap.ticker.add(() => {
+            if (!isIdle) {
+                cx += (mx - cx) * 0.10;
+                cy += (my - cy) * 0.10;
+                gsap.set(mascot, { x: cx - HALF, y: cy - HALF });
+            } else {
+                cx += (mx - cx) * 0.05; // slower when idle
+            }
+        });
+
+        // Slow continuous ray rotation around SVG center (60,60)
+        const rays = document.getElementById('mascot-rays');
+        if (rays) {
+            gsap.to(rays, {
+                rotation: 360,
+                duration: 18,
+                repeat: -1,
+                ease: 'none',
+                transformOrigin: '60px 60px'
+            });
+        }
+    })();
+    </script>
+
+    <!-- ==============================================
+         STUDENT DASHBOARD VIEW
+         ============================================== -->
+    <div id="student-view" class="view-section hidden-view min-h-screen">
+        <!-- Side Navigation Bar -->
+        <nav class="fixed left-0 top-0 h-full flex flex-col p-6 h-screen w-64 bg-white border-r-4 border-brutalist-dark z-50">
+            <div class="mb-10 px-2 flex items-center justify-between">
+                <div>
+                    <span class="font-vietnam text-3xl font-black text-brutalist-dark tracking-tight">Nexora AI</span>
+                    <p class="font-mono text-[10px] text-brutalist-dark/60 uppercase tracking-widest mt-1">Learning OS</p>
+                </div>
+            </div>
+            <div class="flex flex-col gap-3 flex-grow">
+                <!-- Navigation Items -->
+                <a id="snav-dashboard" class="flex items-center gap-3 px-4 py-3 rounded-2xl bg-brutalist-yellow border-2 border-brutalist-dark brutalist-btn-sm text-brutalist-dark" href="#" onclick="showStudentPage('dashboard'); return false;">
+                    <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">dashboard</span>
+                    <span class="font-vietnam font-bold text-sm">Dashboard</span>
+                </a>
+                <a id="snav-learning-path" class="flex items-center gap-3 px-4 py-3 rounded-2xl bg-white border-2 border-brutalist-dark brutalist-btn-sm text-brutalist-dark" href="#" onclick="showStudentPage('learning-path'); return false;">
+                    <span class="material-symbols-outlined">auto_stories</span>
+                    <span class="font-vietnam font-bold text-sm">Learning Path</span>
+                </a>
+                <a id="snav-library" class="flex items-center gap-3 px-4 py-3 rounded-2xl bg-white border-2 border-brutalist-dark brutalist-btn-sm text-brutalist-dark" href="#" onclick="showStudentPage('library'); return false;">
+                    <span class="material-symbols-outlined">menu_book</span>
+                    <span class="font-vietnam font-bold text-sm">Library</span>
+                </a>
+                <a id="snav-family-hub" class="flex items-center gap-3 px-4 py-3 rounded-2xl bg-white border-2 border-brutalist-dark brutalist-btn-sm text-brutalist-dark" href="#" onclick="showStudentPage('family-hub'); return false;">
+                    <span class="material-symbols-outlined">family_restroom</span>
+                    <span class="font-vietnam font-bold text-sm">Family Hub</span>
+                </a>
+            </div>
+            <div class="mt-auto pt-6 border-t-2 border-brutalist-dark flex flex-col gap-4">
+                <a href="/auth" onclick="localStorage.removeItem('nexora_user_session');" class="flex items-center justify-center gap-2 w-full py-2.5 px-4 bg-brutalist-light-slate border-2 border-brutalist-dark brutalist-btn-sm text-brutalist-dark font-extrabold text-xs rounded-xl uppercase text-center">
+                    <span class="material-symbols-outlined text-sm">switch_account</span> Đổi tài khoản
+                </a>
+                <button onclick="performLogout()" class="w-full py-3.5 px-4 bg-brutalist-orange text-white font-vietnam font-black text-sm rounded-2xl brutalist-btn uppercase tracking-wider">
+                    Đăng xuất
+                </button>
+            </div>
+        </nav>
+
+        <!-- Main Content Area -->
+        <main class="ml-64 p-margin-desktop min-h-screen">
+            <!-- Top App Bar -->
+            <header class="flex justify-between items-center w-full h-20 mb-8 border-b-4 border-brutalist-dark pb-4">
+                <div class="flex flex-col">
+                    <h1 id="student-welcome-title" class="font-vietnam text-4xl font-extrabold text-brutalist-dark tracking-tight">Chào Leo! 👋</h1>
+                    <p class="text-sm font-semibold text-brutalist-dark/60 mt-1">Hôm nay hãy cùng tích cực hoàn thành thử thách và nhận sao nhé!</p>
+                </div>
+                <div class="flex items-center gap-6">
+                    <div class="flex items-center gap-2 bg-brutalist-yellow border-3 border-brutalist-dark px-4 py-2 rounded-2xl shadow-[3px_3px_0_rgba(15,23,42,1)]">
+                        <span class="material-symbols-outlined text-brutalist-dark text-xl" style="font-variation-settings: 'FILL' 1;">stars</span>
+                        <span id="student-stars-display" class="font-mono text-sm text-brutalist-dark font-black">150 Star points</span>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <div id="student-avatar" class="w-12 h-12 rounded-2xl border-3 border-brutalist-dark shadow-[3px_3px_0_rgba(15,23,42,1)] bg-brutalist-yellow flex items-center justify-center">
+                            <span id="student-avatar-initials" class="font-vietnam font-black text-brutalist-dark text-lg">L</span>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <!-- ===== STUDENT SUB-PAGES ===== -->
+            <div id="student-dashboard-panel">
+            <!-- Bento Grid Layout -->
+            <div class="grid grid-cols-12 gap-6">
+                <!-- 'Family Streaks' Widget -->
+                <div class="col-span-12 lg:col-span-5 brutalist-card p-8 flex flex-col items-center justify-center relative overflow-hidden group">
+                    <div class="absolute -top-12 -right-12 w-48 h-48 bg-brutalist-orange/10 rounded-full blur-3xl"></div>
+                    
+                    <div class="relative flex items-center justify-center mb-6">
+                        <!-- Glowing Progress Ring -->
+                        <svg class="w-48 h-48">
+                            <circle class="text-slate-100" cx="96" cy="96" fill="transparent" r="88" stroke="currentColor" stroke-width="12"></circle>
+                            <circle id="streak-circle" class="text-brutalist-orange progress-ring" cx="96" cy="96" fill="transparent" r="88" stroke="currentColor" stroke-dasharray="552.92" stroke-dashoffset="138" stroke-linecap="round" stroke-width="12"></circle>
+                        </svg>
+                        <div class="absolute flex flex-col items-center animate-fire">
+                            <span class="material-symbols-outlined text-7xl text-brutalist-orange" style="font-variation-settings: 'FILL' 1;">local_fire_department</span>
+                        </div>
+                    </div>
+                    <h2 id="streak-display-val" class="font-vietnam text-5xl font-black text-brutalist-dark mb-1">12 Days</h2>
+                    <p class="text-sm font-bold text-slate-500 text-center px-4">Chuỗi học tập cùng gia đình đang sáng! Hãy tiếp tục duy trì thói quen hàng ngày nhé.</p>
+                </div>
+
+                <!-- Learning Challenges Section -->
+                <div class="col-span-12 lg:col-span-7 flex flex-col gap-6">
+                    <div class="flex justify-between items-end">
+                        <h3 class="font-vietnam text-2xl font-black tracking-tight text-brutalist-dark">Nhiệm Vụ Hôm Nay 🎒</h3>
+                        <span class="text-xs font-mono font-bold text-white bg-brutalist-purple border-2 border-brutalist-dark px-3 py-1 rounded-full shadow-[2px_2px_0_rgba(15,23,42,1)]">Habits Priority</span>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Challenge Card 1 -->
+                        <div onclick="openExercise(1)" id="challenge-card-1" class="brutalist-card p-6 flex flex-col justify-between group cursor-pointer relative overflow-hidden">
+                            <div class="flex justify-between items-start mb-4">
+                                <div class="p-3 rounded-2xl bg-brutalist-blue/10 text-brutalist-blue border-2 border-brutalist-dark shadow-[3px_3px_0_rgba(15,23,42,1)]">
+                                    <span class="material-symbols-outlined text-xl align-middle">rocket_launch</span>
+                                </div>
+                                <div id="challenge-checkbox-1" class="w-8 h-8 rounded-lg border-2 border-brutalist-dark flex items-center justify-center transition-all duration-300 bg-white">
+                                    <span class="material-symbols-outlined text-brutalist-dark opacity-0 text-sm font-black">check</span>
+                                </div>
+                            </div>
+                            <div>
+                                <h4 class="font-vietnam text-xl font-bold text-brutalist-dark mb-2">Science Quest: Learn Space Travel</h4>
+                                <div class="flex items-center gap-2">
+                                    <span class="px-2.5 py-0.5 rounded-full border-2 border-brutalist-dark bg-brutalist-light-slate text-brutalist-dark text-xs font-bold">Astronomy</span>
+                                    <span class="px-2.5 py-0.5 rounded-full border-2 border-brutalist-dark bg-brutalist-green text-white text-xs font-bold">+30 Sao</span>
+                                </div>
+                                <p id="challenge-status-1" class="text-xs font-bold text-slate-400 mt-2">Nhấn để làm bài tập →</p>
+                            </div>
+                        </div>
+
+                        <!-- Challenge Card 2 -->
+                        <div onclick="openExercise(2)" id="challenge-card-2" class="brutalist-card p-6 flex flex-col justify-between group cursor-pointer relative overflow-hidden">
+                            <div class="flex justify-between items-start mb-4">
+                                <div class="p-3 rounded-2xl bg-brutalist-purple/10 text-brutalist-purple border-2 border-brutalist-dark shadow-[3px_3px_0_rgba(15,23,42,1)]">
+                                    <span class="material-symbols-outlined text-xl align-middle">calculate</span>
+                                </div>
+                                <div id="challenge-checkbox-2" class="w-8 h-8 rounded-lg border-2 border-brutalist-dark flex items-center justify-center transition-all duration-300 bg-white">
+                                    <span class="material-symbols-outlined text-brutalist-dark opacity-0 text-sm font-black">check</span>
+                                </div>
+                            </div>
+                            <div>
+                                <h4 class="font-vietnam text-xl font-bold text-brutalist-dark mb-2">Math Puzzle: Fraction Patterns</h4>
+                                <div class="flex items-center gap-2">
+                                    <span class="px-2.5 py-0.5 rounded-full border-2 border-brutalist-dark bg-brutalist-light-slate text-brutalist-dark text-xs font-bold">Math</span>
+                                    <span class="px-2.5 py-0.5 rounded-full border-2 border-brutalist-dark bg-brutalist-green text-white text-xs font-bold">+30 Sao</span>
+                                </div>
+                                <p id="challenge-status-2" class="text-xs font-bold text-slate-400 mt-2">Nhấn để làm bài tập →</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Reward Shop Section -->
+                <div class="col-span-12 flex flex-col gap-6 mt-4">
+                    <div class="flex flex-wrap justify-between items-center border-t-2 border-dashed border-brutalist-dark pt-6 gap-3">
+                        <div class="flex items-center gap-4">
+                            <h3 class="font-vietnam text-2xl font-black text-brutalist-dark">Cửa Hàng Quà Tặng Gia Đình 🎁</h3>
+                            <div class="h-5 w-[2px] bg-brutalist-dark hidden md:block"></div>
+                            <span class="text-xs text-slate-500 font-bold hidden md:block">Dùng sao tích lũy để đổi các quà tặng từ bố mẹ</span>
+                        </div>
+                        <!-- Category filter tabs -->
+                        <div id="reward-filter-tabs" class="flex gap-2 flex-wrap">
+                            <button onclick="filterRewards('all')" id="rf-all" class="px-3 py-1 rounded-full text-xs font-black border-2 border-brutalist-dark bg-brutalist-dark text-white brutalist-btn-sm">Tất cả</button>
+                            <button onclick="filterRewards('hoatdong')" id="rf-hoatdong" class="px-3 py-1 rounded-full text-xs font-black border-2 border-brutalist-dark bg-white text-brutalist-dark brutalist-btn-sm">🎮 Hoạt động</button>
+                            <button onclick="filterRewards('amthuc')" id="rf-amthuc" class="px-3 py-1 rounded-full text-xs font-black border-2 border-brutalist-dark bg-white text-brutalist-dark brutalist-btn-sm">🍦 Ẩm thực</button>
+                            <button onclick="filterRewards('giaitri')" id="rf-giaitri" class="px-3 py-1 rounded-full text-xs font-black border-2 border-brutalist-dark bg-white text-brutalist-dark brutalist-btn-sm">🎬 Giải trí</button>
+                            <button onclick="filterRewards('khac')" id="rf-khac" class="px-3 py-1 rounded-full text-xs font-black border-2 border-brutalist-dark bg-white text-brutalist-dark brutalist-btn-sm">✨ Khác</button>
+                        </div>
+                    </div>
+                    <!-- Pending requests banner -->
+                    <div id="pending-banner" class="hidden items-center gap-3 p-4 rounded-2xl border-2 border-brutalist-orange bg-brutalist-orange/10">
+                        <span class="material-symbols-outlined text-brutalist-orange">pending_actions</span>
+                        <p class="text-sm font-bold text-brutalist-dark flex-grow">Bạn có <span id="pending-count" class="font-black text-brutalist-orange">0</span> yêu cầu đổi quà đang chờ bố mẹ duyệt.</p>
+                    </div>
+                    <!-- Dynamic reward grid -->
+                    <div id="student-reward-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+                </div>
+
+                <!-- AI Analysis Card -->
+                <div class="col-span-12 brutalist-card p-8 flex flex-col md:flex-row items-center gap-8 relative overflow-hidden mt-4">
+                    <div class="md:w-1/2">
+                        <span class="px-3 py-1 rounded-full border-2 border-brutalist-dark bg-brutalist-purple/10 text-brutalist-purple text-xs font-bold mb-3 inline-block">Habit Focus: Focus & Concentration</span>
+                        <h3 class="font-vietnam text-2xl font-black text-brutalist-dark mb-3">AI Analysis & Coaching 🧠</h3>
+                        <p class="text-sm text-slate-600 mb-6 leading-relaxed">
+                            Leo, your progress in <span class="text-brutalist-blue font-bold">Space Science</span> shows excellent retention. You focus best in the first 20 minutes. AI suggests taking a 5-minute movement break next.
+                        </p>
+                        <button onclick="showToast('Personalized module loading...')" class="px-6 py-2.5 bg-brutalist-dark text-white font-extrabold text-xs rounded-xl brutalist-btn uppercase tracking-wider">
+                            Start Next Task
+                        </button>
+                    </div>
+                    <div class="md:w-1/2 h-48 w-full relative bg-brutalist-light-slate rounded-2xl border-3 border-brutalist-dark overflow-hidden flex flex-col justify-center p-6 shadow-[3px_3px_0_rgba(15,23,42,1)]">
+                        <h4 class="text-xs font-bold text-brutalist-dark uppercase tracking-wider mb-2 font-mono">Simulated Focus Meter</h4>
+                        <!-- Simulated Focus Progress -->
+                        <div class="flex items-end justify-between gap-1 h-24 mb-2">
+                            <div class="w-full bg-brutalist-purple/30 border-2 border-brutalist-dark rounded-t-md transition-all duration-500" style="height: 40%"></div>
+                            <div class="w-full bg-brutalist-purple/40 border-2 border-brutalist-dark rounded-t-md transition-all duration-500" style="height: 60%"></div>
+                            <div class="w-full bg-brutalist-purple/50 border-2 border-brutalist-dark rounded-t-md transition-all duration-500" style="height: 85%"></div>
+                            <div class="w-full bg-brutalist-purple/70 border-2 border-brutalist-dark rounded-t-md transition-all duration-500" style="height: 90%"></div>
+                            <div class="w-full bg-brutalist-blue/80 border-2 border-brutalist-dark rounded-t-md transition-all duration-500" style="height: 75%"></div>
+                            <div class="w-full bg-brutalist-blue/60 border-2 border-brutalist-dark rounded-t-md transition-all duration-500" style="height: 50%"></div>
+                            <div class="w-full bg-brutalist-purple/80 border-2 border-brutalist-dark rounded-t-md transition-all duration-500" style="height: 95%"></div>
+                        </div>
+                        <div class="flex justify-between text-[10px] text-slate-500 font-mono font-bold">
+                            <span>0m</span>
+                            <span>Active Focus Zone (Peak)</span>
+                            <span>30m</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            </div><!-- /student-dashboard-panel -->
+
+            <!-- ============================================
+                 LEARNING PATH PANEL
+                 ============================================ -->
+            <div id="student-learning-path-panel" class="hidden">
+                <!-- Page Header -->
+                <div class="flex items-center justify-between mb-8">
+                    <div>
+                        <span class="text-xs font-mono font-black text-brutalist-purple uppercase tracking-widest">AI-Powered</span>
+                        <h2 class="font-vietnam text-3xl font-black text-brutalist-dark mt-1">Lộ trình học tập 📚</h2>
+                    </div>
+                    <div class="flex items-center gap-2 px-4 py-2 bg-brutalist-purple/10 border-2 border-brutalist-dark rounded-2xl shadow-[3px_3px_0_rgba(15,23,42,1)]">
+                        <span class="material-symbols-outlined text-brutalist-purple text-sm" style="font-variation-settings:'FILL' 1">auto_fix_high</span>
+                        <span class="text-xs font-black text-brutalist-dark">AI đang phân tích hành vi học của bạn...</span>
+                    </div>
+                </div>
+                <!-- Weekly Subject Progress -->
+                <div class="grid grid-cols-3 gap-4 mb-8">
+                    <div class="brutalist-card p-5 bg-white">
+                        <div class="flex items-center justify-between mb-3">
+                            <div class="flex items-center gap-2">
+                                <div class="w-8 h-8 rounded-xl bg-brutalist-blue/15 border-2 border-brutalist-dark flex items-center justify-center">
+                                    <span class="material-symbols-outlined text-sm text-brutalist-blue" style="font-variation-settings:'FILL' 1">calculate</span>
+                                </div>
+                                <span class="font-vietnam font-black text-sm text-brutalist-dark">Toán học</span>
+                            </div>
+                            <span class="font-mono font-black text-brutalist-blue text-sm">72%</span>
+                        </div>
+                        <div class="w-full h-2.5 bg-brutalist-light-slate rounded-full border border-brutalist-dark overflow-hidden">
+                            <div class="h-full bg-brutalist-blue rounded-full" style="width:72%"></div>
+                        </div>
+                        <p class="text-[10px] font-bold text-slate-400 mt-2 font-mono">18/25 bài học hoàn thành</p>
+                    </div>
+                    <div class="brutalist-card p-5 bg-white">
+                        <div class="flex items-center justify-between mb-3">
+                            <div class="flex items-center gap-2">
+                                <div class="w-8 h-8 rounded-xl bg-brutalist-green/15 border-2 border-brutalist-dark flex items-center justify-center">
+                                    <span class="material-symbols-outlined text-sm text-brutalist-green" style="font-variation-settings:'FILL' 1">science</span>
+                                </div>
+                                <span class="font-vietnam font-black text-sm text-brutalist-dark">Khoa học</span>
+                            </div>
+                            <span class="font-mono font-black text-brutalist-green text-sm">88%</span>
+                        </div>
+                        <div class="w-full h-2.5 bg-brutalist-light-slate rounded-full border border-brutalist-dark overflow-hidden">
+                            <div class="h-full bg-brutalist-green rounded-full" style="width:88%"></div>
+                        </div>
+                        <p class="text-[10px] font-bold text-slate-400 mt-2 font-mono">22/25 bài học hoàn thành</p>
+                    </div>
+                    <div class="brutalist-card p-5 bg-white">
+                        <div class="flex items-center justify-between mb-3">
+                            <div class="flex items-center gap-2">
+                                <div class="w-8 h-8 rounded-xl bg-brutalist-orange/15 border-2 border-brutalist-dark flex items-center justify-center">
+                                    <span class="material-symbols-outlined text-sm text-brutalist-orange" style="font-variation-settings:'FILL' 1">menu_book</span>
+                                </div>
+                                <span class="font-vietnam font-black text-sm text-brutalist-dark">Đọc sách</span>
+                            </div>
+                            <span class="font-mono font-black text-brutalist-orange text-sm">55%</span>
+                        </div>
+                        <div class="w-full h-2.5 bg-brutalist-light-slate rounded-full border border-brutalist-dark overflow-hidden">
+                            <div class="h-full bg-brutalist-orange rounded-full" style="width:55%"></div>
+                        </div>
+                        <p class="text-[10px] font-bold text-slate-400 mt-2 font-mono">11/20 cuốn sách</p>
+                    </div>
+                </div>
+                <!-- Main Grid: Modules + Sidebar -->
+                <div class="grid grid-cols-12 gap-6">
+                    <!-- Learning Modules -->
+                    <div class="col-span-12 lg:col-span-8">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="font-vietnam text-xl font-black text-brutalist-dark">Các module đang học</h3>
+                            <div class="flex gap-2">
+                                <button onclick="filterLearningModules('all')" id="lm-filter-all" class="px-3 py-1 rounded-full text-xs font-black border-2 border-brutalist-dark bg-brutalist-dark text-white brutalist-btn-sm">Tất cả</button>
+                                <button onclick="filterLearningModules('math')" id="lm-filter-math" class="px-3 py-1 rounded-full text-xs font-black border-2 border-brutalist-dark bg-white text-brutalist-dark brutalist-btn-sm">Toán</button>
+                                <button onclick="filterLearningModules('science')" id="lm-filter-science" class="px-3 py-1 rounded-full text-xs font-black border-2 border-brutalist-dark bg-white text-brutalist-dark brutalist-btn-sm">KH</button>
+                                <button onclick="filterLearningModules('reading')" id="lm-filter-reading" class="px-3 py-1 rounded-full text-xs font-black border-2 border-brutalist-dark bg-white text-brutalist-dark brutalist-btn-sm">Đọc</button>
+                            </div>
+                        </div>
+                        <div id="learning-modules-grid" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+                    </div>
+                    <!-- Right sidebar: Milestones + AI -->
+                    <div class="col-span-12 lg:col-span-4 flex flex-col gap-6">
+                        <!-- Milestone Timeline -->
+                        <div class="brutalist-card p-6 bg-white">
+                            <div class="flex items-center gap-2 mb-5">
+                                <span class="material-symbols-outlined text-brutalist-yellow" style="font-variation-settings:'FILL' 1">military_tech</span>
+                                <h3 class="font-vietnam font-black text-brutalist-dark">Mốc thành tích</h3>
+                            </div>
+                            <div class="flex flex-col gap-3">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-8 h-8 rounded-full bg-brutalist-green border-2 border-brutalist-dark flex items-center justify-center flex-shrink-0 shadow-[2px_2px_0_rgba(15,23,42,1)]"><span class="material-symbols-outlined text-white text-sm">check</span></div>
+                                    <div><p class="text-xs font-black text-brutalist-dark">Hoàn thành 10 bài Toán</p><p class="text-[10px] text-brutalist-green font-bold font-mono">✓ Đạt được · +100 Sao</p></div>
+                                </div>
+                                <div class="flex items-center gap-3">
+                                    <div class="w-8 h-8 rounded-full bg-brutalist-green border-2 border-brutalist-dark flex items-center justify-center flex-shrink-0 shadow-[2px_2px_0_rgba(15,23,42,1)]"><span class="material-symbols-outlined text-white text-sm">check</span></div>
+                                    <div><p class="text-xs font-black text-brutalist-dark">Chuỗi 7 ngày học tập</p><p class="text-[10px] text-brutalist-green font-bold font-mono">✓ Đạt được · +150 Sao</p></div>
+                                </div>
+                                <div class="w-[2px] h-5 bg-slate-200 ml-4"></div>
+                                <div class="flex items-center gap-3">
+                                    <div class="w-8 h-8 rounded-full bg-brutalist-yellow/40 border-2 border-brutalist-dark flex items-center justify-center flex-shrink-0 shadow-[2px_2px_0_rgba(15,23,42,1)]"><span class="material-symbols-outlined text-brutalist-dark text-sm">lock</span></div>
+                                    <div><p class="text-xs font-black text-brutalist-dark">Đọc 15 cuốn sách</p><p class="text-[10px] text-slate-400 font-bold font-mono">11/15 · Còn 4 cuốn nữa</p></div>
+                                </div>
+                                <div class="flex items-center gap-3">
+                                    <div class="w-8 h-8 rounded-full bg-slate-100 border-2 border-brutalist-dark flex items-center justify-center flex-shrink-0"><span class="material-symbols-outlined text-slate-400 text-sm">lock</span></div>
+                                    <div><p class="text-xs font-black text-brutalist-dark">Chinh phục Thiên văn học</p><p class="text-[10px] text-slate-400 font-bold font-mono">0/5 bài · Chưa bắt đầu</p></div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- AI Suggestion Card -->
+                        <div class="brutalist-card p-6" style="background:#F5F3FF;border-color:#8B5CF6">
+                            <div class="flex items-center gap-2 mb-3">
+                                <span class="material-symbols-outlined text-brutalist-purple" style="font-variation-settings:'FILL' 1">psychology</span>
+                                <h3 class="font-vietnam font-black text-sm text-brutalist-dark">AI đề xuất hôm nay</h3>
+                            </div>
+                            <p class="text-xs text-slate-600 leading-relaxed mb-4">Dựa trên phân tích thói quen học, bạn học Toán hiệu quả nhất vào buổi sáng. Hôm nay hãy thử hoàn thành <strong>Module Hình học cơ bản</strong> trong 20 phút!</p>
+                            <button onclick="showToast('Đang mở Module Hình học cơ bản...')" class="w-full py-2.5 bg-brutalist-purple text-white font-black text-xs rounded-xl brutalist-btn uppercase tracking-wider">Bắt đầu ngay →</button>
+                        </div>
+                    </div>
+                </div>
+            </div><!-- /student-learning-path-panel -->
+
+            <!-- ============================================
+                 LIBRARY PANEL
+                 ============================================ -->
+            <div id="student-library-panel" class="hidden">
+                <!-- Header -->
+                <div class="flex items-center justify-between mb-6">
+                    <div>
+                        <span class="text-xs font-mono font-black text-brutalist-orange uppercase tracking-widest">Kho tàng tri thức</span>
+                        <h2 class="font-vietnam text-3xl font-black text-brutalist-dark mt-1">Thư viện học tập 📖</h2>
+                    </div>
+                </div>
+                <!-- Search + Filters -->
+                <div class="flex flex-wrap gap-3 mb-6">
+                    <div class="relative flex-grow max-w-md">
+                        <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-brutalist-dark text-sm">search</span>
+                        <input id="library-search" type="text" placeholder="Tìm kiếm sách, bài học..." oninput="filterLibrary()" class="w-full bg-white border-2 border-brutalist-dark rounded-xl py-2.5 pl-10 pr-4 text-xs font-semibold focus:outline-none shadow-[2px_2px_0_rgba(15,23,42,1)]" />
+                    </div>
+                    <div class="flex gap-2 flex-wrap">
+                        <button onclick="filterLibraryByCategory('all')" id="lib-cat-all" class="px-3 py-1 rounded-full text-xs font-black border-2 border-brutalist-dark bg-brutalist-dark text-white brutalist-btn-sm">Tất cả</button>
+                        <button onclick="filterLibraryByCategory('science')" id="lib-cat-science" class="px-3 py-1 rounded-full text-xs font-black border-2 border-brutalist-dark bg-white text-brutalist-dark brutalist-btn-sm">🔬 Khoa học</button>
+                        <button onclick="filterLibraryByCategory('math')" id="lib-cat-math" class="px-3 py-1 rounded-full text-xs font-black border-2 border-brutalist-dark bg-white text-brutalist-dark brutalist-btn-sm">📐 Toán học</button>
+                        <button onclick="filterLibraryByCategory('literature')" id="lib-cat-literature" class="px-3 py-1 rounded-full text-xs font-black border-2 border-brutalist-dark bg-white text-brutalist-dark brutalist-btn-sm">📝 Văn học</button>
+                        <button onclick="filterLibraryByCategory('history')" id="lib-cat-history" class="px-3 py-1 rounded-full text-xs font-black border-2 border-brutalist-dark bg-white text-brutalist-dark brutalist-btn-sm">🏛️ Lịch sử</button>
+                    </div>
+                </div>
+                <!-- Currently Reading -->
+                <div class="mb-8">
+                    <h3 class="font-vietnam text-lg font-black text-brutalist-dark mb-4 flex items-center gap-2">
+                        <span class="material-symbols-outlined text-brutalist-orange" style="font-variation-settings:'FILL' 1">auto_stories</span>
+                        Đang đọc
+                    </h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="brutalist-card p-5 bg-white flex gap-4">
+                            <div class="w-14 h-20 rounded-xl border-2 border-brutalist-dark flex-shrink-0 flex items-center justify-center shadow-[3px_3px_0_rgba(15,23,42,1)]" style="background:linear-gradient(135deg,#8B5CF6,#0284C7)">
+                                <span class="material-symbols-outlined text-white text-2xl" style="font-variation-settings:'FILL' 1">rocket_launch</span>
+                            </div>
+                            <div class="flex-grow">
+                                <p class="text-[10px] font-mono font-bold text-brutalist-purple uppercase tracking-wider mb-1">Khoa học vũ trụ</p>
+                                <h4 class="font-vietnam font-black text-sm text-brutalist-dark mb-2">Hành trình đến các vì sao</h4>
+                                <div class="w-full h-1.5 bg-brutalist-light-slate rounded-full border border-brutalist-dark overflow-hidden mb-1"><div class="h-full bg-brutalist-purple rounded-full" style="width:65%"></div></div>
+                                <div class="flex items-center justify-between">
+                                    <p class="text-[10px] font-bold text-slate-400">65% · Trang 130/200</p>
+                                    <button onclick="showToast('Tiếp tục đọc: Hành trình đến các vì sao')" class="text-[10px] font-black text-brutalist-purple hover:underline">Đọc tiếp →</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="brutalist-card p-5 bg-white flex gap-4">
+                            <div class="w-14 h-20 rounded-xl border-2 border-brutalist-dark flex-shrink-0 flex items-center justify-center shadow-[3px_3px_0_rgba(15,23,42,1)]" style="background:linear-gradient(135deg,#FBBF24,#FF7A45)">
+                                <span class="material-symbols-outlined text-white text-2xl" style="font-variation-settings:'FILL' 1">calculate</span>
+                            </div>
+                            <div class="flex-grow">
+                                <p class="text-[10px] font-mono font-bold text-brutalist-orange uppercase tracking-wider mb-1">Toán học</p>
+                                <h4 class="font-vietnam font-black text-sm text-brutalist-dark mb-2">Toán vui cho trẻ em</h4>
+                                <div class="w-full h-1.5 bg-brutalist-light-slate rounded-full border border-brutalist-dark overflow-hidden mb-1"><div class="h-full bg-brutalist-orange rounded-full" style="width:30%"></div></div>
+                                <div class="flex items-center justify-between">
+                                    <p class="text-[10px] font-bold text-slate-400">30% · Trang 60/200</p>
+                                    <button onclick="showToast('Tiếp tục đọc: Toán vui cho trẻ em')" class="text-[10px] font-black text-brutalist-orange hover:underline">Đọc tiếp →</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Full Library Grid -->
+                <div>
+                    <h3 class="font-vietnam text-lg font-black text-brutalist-dark mb-4 flex items-center gap-2">
+                        <span class="material-symbols-outlined text-brutalist-blue" style="font-variation-settings:'FILL' 1">library_books</span>
+                        Tất cả tài liệu
+                        <span id="library-count" class="text-xs font-mono font-bold text-slate-400 ml-1">(8)</span>
+                    </h3>
+                    <div id="library-grid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"></div>
+                </div>
+            </div><!-- /student-library-panel -->
+
+            <!-- ============================================
+                 FAMILY HUB PANEL
+                 ============================================ -->
+            <div id="student-family-hub-panel" class="hidden">
+                <!-- Header -->
+                <div class="flex items-center justify-between mb-6">
+                    <div>
+                        <span class="text-xs font-mono font-black uppercase tracking-widest" style="color:#EC4899">Kết nối gia đình</span>
+                        <h2 class="font-vietnam text-3xl font-black text-brutalist-dark mt-1">Family Hub 👨‍👩‍👧</h2>
+                    </div>
+                    <div class="flex items-center gap-2 px-4 py-2 bg-brutalist-yellow border-2 border-brutalist-dark rounded-2xl shadow-[3px_3px_0_rgba(15,23,42,1)]">
+                        <span class="material-symbols-outlined text-brutalist-dark text-sm" style="font-variation-settings:'FILL' 1">local_fire_department</span>
+                        <span id="fh-streak-val" class="font-mono text-sm font-black text-brutalist-dark">12 ngày</span>
+                        <span class="text-xs font-bold text-brutalist-dark/60">streak gia đình</span>
+                    </div>
+                </div>
+                <div class="grid grid-cols-12 gap-6">
+                    <!-- Left: Members + Leaderboard -->
+                    <div class="col-span-12 lg:col-span-7 flex flex-col gap-6">
+                        <!-- Family Members -->
+                        <div>
+                            <h3 class="font-vietnam text-lg font-black text-brutalist-dark mb-4">Thành viên gia đình</h3>
+                            <div class="grid grid-cols-3 gap-4">
+                                <div class="brutalist-card p-4 flex flex-col items-center gap-2 text-center" style="background:#FFFBEB;border-color:#FBBF24">
+                                    <div class="w-14 h-14 rounded-2xl bg-brutalist-yellow flex items-center justify-center shadow-[3px_3px_0_rgba(15,23,42,1)]" style="border:3px solid #0F172A">
+                                        <span id="fh-my-initials" class="font-vietnam font-black text-brutalist-dark text-xl">L</span>
+                                    </div>
+                                    <div><p id="fh-my-name" class="font-vietnam font-black text-sm text-brutalist-dark">Leo</p><p class="text-[10px] font-mono text-brutalist-purple font-bold uppercase">Học sinh · Bạn</p></div>
+                                    <div class="flex items-center gap-1"><span class="material-symbols-outlined text-brutalist-orange text-sm" style="font-variation-settings:'FILL' 1">local_fire_department</span><span id="fh-my-streak" class="font-mono font-black text-xs text-brutalist-dark">12 ngày</span></div>
+                                    <span class="px-2 py-0.5 rounded-full text-[10px] font-black" style="background:#D1FAE5;border:1px solid #10B981;color:#10B981">🟢 Đang học</span>
+                                </div>
+                                <div class="brutalist-card p-4 flex flex-col items-center gap-2 text-center bg-white">
+                                    <div class="w-14 h-14 rounded-2xl bg-brutalist-purple flex items-center justify-center shadow-[3px_3px_0_rgba(15,23,42,1)]" style="border:3px solid #0F172A">
+                                        <span class="font-vietnam font-black text-white text-xl">M</span>
+                                    </div>
+                                    <div><p class="font-vietnam font-black text-sm text-brutalist-dark">Mẹ</p><p class="text-[10px] font-mono text-brutalist-purple font-bold uppercase">Phụ huynh</p></div>
+                                    <div class="flex items-center gap-1"><span class="material-symbols-outlined text-brutalist-orange text-sm" style="font-variation-settings:'FILL' 1">local_fire_department</span><span class="font-mono font-black text-xs text-brutalist-dark">12 ngày</span></div>
+                                    <span class="px-2 py-0.5 rounded-full text-[10px] font-black" style="background:#EFF6FF;border:1px solid #0284C7;color:#0284C7">💼 Đang làm việc</span>
+                                </div>
+                                <div class="brutalist-card p-4 flex flex-col items-center gap-2 text-center bg-white opacity-80">
+                                    <div class="w-14 h-14 rounded-2xl bg-brutalist-blue flex items-center justify-center shadow-[3px_3px_0_rgba(15,23,42,1)]" style="border:3px solid #0F172A">
+                                        <span class="font-vietnam font-black text-white text-xl">B</span>
+                                    </div>
+                                    <div><p class="font-vietnam font-black text-sm text-brutalist-dark">Bố</p><p class="text-[10px] font-mono text-brutalist-blue font-bold uppercase">Phụ huynh</p></div>
+                                    <div class="flex items-center gap-1"><span class="material-symbols-outlined text-brutalist-orange text-sm" style="font-variation-settings:'FILL' 1">local_fire_department</span><span class="font-mono font-black text-xs text-brutalist-dark">10 ngày</span></div>
+                                    <span class="px-2 py-0.5 rounded-full text-[10px] font-black" style="background:#F8FAFC;border:1px solid #CBD5E1;color:#94A3B8">😴 Offline</span>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Family Leaderboard -->
+                        <div class="brutalist-card p-6 bg-white">
+                            <div class="flex items-center gap-2 mb-4">
+                                <span class="material-symbols-outlined text-brutalist-yellow" style="font-variation-settings:'FILL' 1">leaderboard</span>
+                                <h3 class="font-vietnam font-black text-brutalist-dark">Bảng xếp hạng tuần này</h3>
+                            </div>
+                            <div class="flex flex-col gap-3">
+                                <div class="flex items-center gap-3 p-3 rounded-xl border-2 border-brutalist-dark shadow-[2px_2px_0_rgba(15,23,42,1)]" style="background:#FFFBEB">
+                                    <span class="text-2xl w-8">🥇</span>
+                                    <div class="w-9 h-9 rounded-xl bg-brutalist-yellow border-2 border-brutalist-dark flex items-center justify-center"><span id="fh-lb-1-initials" class="font-black text-brutalist-dark text-sm">L</span></div>
+                                    <div class="flex-grow"><p id="fh-lb-1-name" class="font-vietnam font-black text-sm text-brutalist-dark">Leo (Bạn)</p><p class="text-[10px] font-mono text-slate-400">7 nhiệm vụ · 5 bài đọc</p></div>
+                                    <span class="font-mono font-black text-brutalist-purple text-sm">480 ⭐</span>
+                                </div>
+                                <div class="flex items-center gap-3 p-3 rounded-xl border-2 border-brutalist-dark bg-white">
+                                    <span class="text-2xl w-8">🥈</span>
+                                    <div class="w-9 h-9 rounded-xl bg-brutalist-purple border-2 border-brutalist-dark flex items-center justify-center"><span class="font-black text-white text-sm">M</span></div>
+                                    <div class="flex-grow"><p class="font-vietnam font-black text-sm text-brutalist-dark">Mẹ</p><p class="text-[10px] font-mono text-slate-400">5 nhiệm vụ · 3 bài đọc</p></div>
+                                    <span class="font-mono font-black text-slate-400 text-sm">320 ⭐</span>
+                                </div>
+                                <div class="flex items-center gap-3 p-3 rounded-xl border-2 border-brutalist-dark bg-white">
+                                    <span class="text-2xl w-8">🥉</span>
+                                    <div class="w-9 h-9 rounded-xl bg-brutalist-blue border-2 border-brutalist-dark flex items-center justify-center"><span class="font-black text-white text-sm">B</span></div>
+                                    <div class="flex-grow"><p class="font-vietnam font-black text-sm text-brutalist-dark">Bố</p><p class="text-[10px] font-mono text-slate-400">3 nhiệm vụ · 2 bài đọc</p></div>
+                                    <span class="font-mono font-black text-slate-400 text-sm">210 ⭐</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Right: Chat + Achievements -->
+                    <div class="col-span-12 lg:col-span-5 flex flex-col gap-6">
+                        <!-- Family Chat -->
+                        <div class="brutalist-card p-6 bg-white flex flex-col">
+                            <div class="flex items-center gap-2 mb-4">
+                                <span class="material-symbols-outlined text-brutalist-orange" style="font-variation-settings:'FILL' 1">forum</span>
+                                <h3 class="font-vietnam font-black text-brutalist-dark">Nhắn tin gia đình</h3>
+                                <span class="w-2 h-2 rounded-full bg-brutalist-green animate-pulse ml-auto"></span>
+                            </div>
+                            <div id="fh-chat-box" class="bg-brutalist-cream border-2 border-brutalist-dark rounded-2xl p-4 mb-4 custom-scrollbar overflow-y-auto space-y-3 max-h-[220px]"></div>
+                            <div class="flex gap-2 mb-3">
+                                <button onclick="sendFamilyQuick('\u2764\uFE0F Con yêu bố mẹ!')" class="px-3 py-1.5 bg-white border-2 border-brutalist-dark rounded-xl text-xs font-bold brutalist-btn-sm">❤️ Yêu bố mẹ</button>
+                                <button onclick="sendFamilyQuick('\uD83D\uDE4F Con cảm ơn bố mẹ!')" class="px-3 py-1.5 bg-white border-2 border-brutalist-dark rounded-xl text-xs font-bold brutalist-btn-sm">🙏 Cảm ơn</button>
+                            </div>
+                            <div class="flex gap-2">
+                                <input id="fh-chat-input" type="text" placeholder="Nhắn gửi gia đình..." onkeydown="if(event.key==='Enter') sendFamilyMessage()" class="flex-grow bg-white border-2 border-brutalist-dark rounded-xl py-2.5 px-4 text-xs font-semibold focus:outline-none shadow-[2px_2px_0_rgba(15,23,42,1)]" />
+                                <button onclick="sendFamilyMessage()" class="p-2.5 bg-brutalist-yellow border-2 border-brutalist-dark rounded-xl brutalist-btn-sm">
+                                    <span class="material-symbols-outlined text-brutalist-dark text-sm">send</span>
+                                </button>
+                            </div>
+                        </div>
+                        <!-- Family Achievements -->
+                        <div class="brutalist-card p-6 bg-white">
+                            <div class="flex items-center gap-2 mb-4">
+                                <span class="material-symbols-outlined text-brutalist-yellow" style="font-variation-settings:'FILL' 1">emoji_events</span>
+                                <h3 class="font-vietnam font-black text-brutalist-dark">Thành tích gia đình</h3>
+                            </div>
+                            <div class="grid grid-cols-3 gap-3">
+                                <div class="flex flex-col items-center gap-2 p-3 rounded-xl border-2 border-brutalist-dark text-center shadow-[2px_2px_0_rgba(15,23,42,1)]" style="background:#ECFDF5">
+                                    <span class="text-2xl">🔥</span>
+                                    <p class="text-[10px] font-black text-brutalist-dark leading-tight">Streak 12 ngày</p>
+                                    <span class="text-[9px] font-mono text-brutalist-green font-bold">Đạt được</span>
+                                </div>
+                                <div class="flex flex-col items-center gap-2 p-3 rounded-xl border-2 border-brutalist-dark text-center shadow-[2px_2px_0_rgba(15,23,42,1)]" style="background:#F5F3FF">
+                                    <span class="text-2xl">🚀</span>
+                                    <p class="text-[10px] font-black text-brutalist-dark leading-tight">Gia đình Explorer</p>
+                                    <span class="text-[9px] font-mono text-brutalist-green font-bold">Đạt được</span>
+                                </div>
+                                <div class="flex flex-col items-center gap-2 p-3 rounded-xl border-2 border-slate-200 text-center opacity-50">
+                                    <span class="text-2xl" style="filter:grayscale(1)">🏆</span>
+                                    <p class="text-[10px] font-black text-slate-400 leading-tight">Champions</p>
+                                    <span class="text-[9px] font-mono text-slate-400 font-bold">Chưa đạt</span>
+                                </div>
+                                <div class="flex flex-col items-center gap-2 p-3 rounded-xl border-2 border-brutalist-dark text-center shadow-[2px_2px_0_rgba(15,23,42,1)]" style="background:#FFF7ED">
+                                    <span class="text-2xl">📚</span>
+                                    <p class="text-[10px] font-black text-brutalist-dark leading-tight">Gia đình đọc sách</p>
+                                    <span class="text-[9px] font-mono text-brutalist-green font-bold">Đạt được</span>
+                                </div>
+                                <div class="flex flex-col items-center gap-2 p-3 rounded-xl border-2 border-slate-200 text-center opacity-50">
+                                    <span class="text-2xl" style="filter:grayscale(1)">💎</span>
+                                    <p class="text-[10px] font-black text-slate-400 leading-tight">Diamond Family</p>
+                                    <span class="text-[9px] font-mono text-slate-400 font-bold">Chưa đạt</span>
+                                </div>
+                                <div class="flex flex-col items-center gap-2 p-3 rounded-xl border-2 border-slate-200 text-center opacity-50">
+                                    <span class="text-2xl" style="filter:grayscale(1)">🌟</span>
+                                    <p class="text-[10px] font-black text-slate-400 leading-tight">30 ngày streak</p>
+                                    <span class="text-[9px] font-mono text-slate-400 font-bold">18/30 ngày</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div><!-- /student-family-hub-panel -->
+
+        </main>
+    </div>
+
+    <!-- ==============================================
+         PARENT DASHBOARD VIEW
+         ============================================== -->
+    <div id="parent-view" class="view-section hidden-view min-h-screen">
+        <!-- Top App Bar -->
+        <header class="flex justify-between items-center w-full px-8 h-20 sticky top-0 z-50 bg-white border-b-4 border-brutalist-dark">
+            <div class="flex items-center gap-4">
+                <span class="font-vietnam text-3xl font-black text-brutalist-dark">Nexora</span>
+                <div class="h-6 w-[2px] bg-brutalist-dark hidden md:block"></div>
+                <span class="hidden md:block font-mono text-xs uppercase tracking-widest text-slate-500 font-bold">Parent Admin Center</span>
+            </div>
+            <div class="flex-grow max-w-md px-8 hidden md:block">
+                <div class="relative">
+                    <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-brutalist-dark text-sm">search</span>
+                    <input class="w-full bg-[#FAF9F5] border-2 border-brutalist-dark rounded-xl py-1.5 pl-10 pr-4 text-xs focus:outline-none focus:bg-white transition-all shadow-[2px_2px_0_rgba(15,23,42,1)]" placeholder="Analyze habit metrics..." type="text"/>
+                </div>
+            </div>
+            <div class="flex items-center gap-4">
+                <button onclick="showToast('No new alerts.')" class="hover:bg-brutalist-light-slate rounded-xl p-2 border-2 border-brutalist-dark transition-colors relative shadow-[2px_2px_0_rgba(15,23,42,1)] bg-white">
+                    <span class="material-symbols-outlined text-brutalist-dark">notifications</span>
+                </button>
+                <div class="flex items-center gap-1 bg-brutalist-yellow border-2 border-brutalist-dark px-3 py-1 rounded-xl shadow-[2px_2px_0_rgba(15,23,42,1)]">
+                    <span class="material-symbols-outlined text-brutalist-dark text-sm" style="font-variation-settings: 'FILL' 1;">local_fire_department</span>
+                    <span id="parent-streak-val" class="font-mono text-xs text-brutalist-dark font-black">12 Days</span>
+                </div>
+                <div id="parent-avatar" class="w-10 h-10 rounded-2xl border-2 border-brutalist-dark ml-2 shadow-[2px_2px_0_rgba(15,23,42,1)] bg-brutalist-purple flex items-center justify-center">
+                    <span id="parent-avatar-initials" class="font-vietnam font-black text-white text-sm">S</span>
+                </div>
+            </div>
+        </header>
+
+        <div class="flex">
+            <!-- SideNav -->
+            <nav class="fixed left-0 top-20 h-[calc(100vh-5rem)] flex flex-col p-6 w-64 border-r-4 border-brutalist-dark bg-white hidden md:flex">
+                <div class="flex items-center gap-3 mb-8 px-2">
+                    <div class="w-10 h-10 rounded-xl bg-brutalist-yellow border-2 border-brutalist-dark flex items-center justify-center text-brutalist-dark shadow-[2px_2px_0_rgba(15,23,42,1)]">
+                        <span class="material-symbols-outlined text-sm">family_restroom</span>
+                    </div>
+                    <div>
+                        <h3 class="font-vietnam font-black text-sm text-brutalist-dark">Gia đình</h3>
+                        <p class="text-[9px] text-slate-400 uppercase tracking-widest font-mono font-bold">Admin Console</p>
+                    </div>
+                </div>
+                <div class="space-y-3 flex-grow">
+                    <a id="nav-overview" class="flex items-center gap-3 px-4 py-3 rounded-xl bg-brutalist-yellow border-2 border-brutalist-dark brutalist-btn-sm text-brutalist-dark font-bold text-sm cursor-pointer" onclick="switchParentTab('overview')">
+                        <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">dashboard</span>
+                        <span>Tổng quan</span>
+                    </a>
+                    <a id="nav-insights" class="flex items-center gap-3 px-4 py-3 rounded-xl bg-white border-2 border-brutalist-dark brutalist-btn-sm text-brutalist-dark font-bold text-sm cursor-pointer" onclick="switchParentTab('insights')">
+                        <span class="material-symbols-outlined">insights</span>
+                        <span>Phân tích thói quen</span>
+                    </a>
+                    <a id="nav-catalog" class="flex items-center gap-3 px-4 py-3 rounded-xl bg-white border-2 border-brutalist-dark brutalist-btn-sm text-brutalist-dark font-bold text-sm cursor-pointer" onclick="switchParentTab('catalog')">
+                        <span class="material-symbols-outlined">award_star</span>
+                        <span>Danh mục quà tặng</span>
+                        <span id="approve-badge" class="hidden ml-auto text-[9px] font-black bg-brutalist-orange text-white rounded-full px-1.5 py-0.5">0</span>
+                    </a>
+                </div>
+                <div class="mt-auto pt-6 border-t-2 border-brutalist-dark flex flex-col gap-4">
+                    <a href="/auth" onclick="localStorage.removeItem('nexora_user_session');" class="flex items-center justify-center gap-2 w-full py-2.5 px-4 bg-brutalist-light-slate border-2 border-brutalist-dark brutalist-btn-sm text-brutalist-dark font-extrabold text-xs rounded-xl uppercase text-center">
+                        <span class="material-symbols-outlined text-sm">switch_account</span> Đổi tài khoản
+                    </a>
+                    <button onclick="performLogout()" class="w-full py-3.5 px-4 bg-brutalist-orange text-white font-vietnam font-black text-sm rounded-2xl brutalist-btn uppercase tracking-wider">
+                        Đăng xuất
+                    </button>
+                </div>
+            </nav>
+
+            <!-- Main Content -->
+            <main class="flex-1 md:ml-64 p-8">
+                <!-- ====== CATALOG MANAGEMENT PANEL (hidden by default) ====== -->
+                <div id="parent-catalog-panel" class="hidden max-w-container-max mx-auto flex flex-col gap-8">
+                    <!-- Header -->
+                    <div class="flex flex-wrap items-center justify-between gap-4">
+                        <div>
+                            <h1 class="font-vietnam text-3xl font-black text-brutalist-dark">Danh mục Quà Tặng 🎁</h1>
+                            <p class="text-sm text-slate-500 font-semibold mt-1">Quản lý phần thưởng và duyệt yêu cầu đổi quà của con</p>
+                        </div>
+                        <button onclick="openAddRewardModal()" class="flex items-center gap-2 px-5 py-3 bg-brutalist-yellow text-brutalist-dark font-black text-sm rounded-2xl brutalist-btn uppercase tracking-wide">
+                            <span class="material-symbols-outlined text-lg">add_circle</span>
+                            Thêm quà mới
+                        </button>
+                    </div>
+
+                    <!-- Pending Approvals -->
+                    <div class="brutalist-card p-6">
+                        <div class="flex items-center gap-3 mb-4">
+                            <span class="material-symbols-outlined text-brutalist-orange" style="font-variation-settings:'FILL' 1">pending_actions</span>
+                            <h2 class="font-vietnam text-xl font-black text-brutalist-dark">Yêu cầu đổi quà đang chờ</h2>
+                            <span id="parent-pending-count" class="ml-auto text-xs font-black bg-brutalist-orange text-white rounded-full px-2 py-0.5">0</span>
+                        </div>
+                        <div id="parent-pending-list" class="flex flex-col gap-3">
+                            <p class="text-sm text-slate-400 font-semibold text-center py-4">Chưa có yêu cầu nào đang chờ.</p>
+                        </div>
+                    </div>
+
+                    <!-- Reward Catalog Grid -->
+                    <div>
+                        <h2 class="font-vietnam text-xl font-black text-brutalist-dark mb-4">Tất cả quà tặng</h2>
+                        <div id="parent-reward-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+                    </div>
+                </div>
+
+                <!-- ====== MAIN DASHBOARD (overview tab) ====== -->
+                <!-- Bento Grid -->
+                <div id="parent-overview-panel" class="max-w-container-max mx-auto grid grid-cols-1 lg:grid-cols-12 gap-6">
+                    <!-- Welcome Banner -->
+                    <div class="lg:col-span-12 brutalist-card p-8 relative overflow-hidden group">
+                        <div class="absolute -right-20 -top-20 w-80 h-80 bg-brutalist-purple/5 rounded-full blur-[100px]"></div>
+                        <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+                            <div>
+                                <h1 id="parent-welcome-title" class="font-vietnam text-3xl font-black text-brutalist-dark mb-2">Chào mừng trở lại, Sarah. ☀️</h1>
+                                <p class="text-sm font-medium text-slate-500 max-w-xl">Hệ thống AI đang ghi nhận hành vi học tập và nhịp độ tập trung của con trẻ tự động.</p>
+                            </div>
+                            <div class="flex gap-4">
+                                <div class="text-center p-4 brutalist-card min-w-[110px] bg-brutalist-cream">
+                                    <p class="text-[9px] text-slate-500 font-bold uppercase mb-1 font-mono">Active Time</p>
+                                    <p id="parent-active-time" class="text-xl font-black text-brutalist-purple">35m today</p>
+                                </div>
+                                <div class="text-center p-4 brutalist-card min-w-[110px] bg-brutalist-cream">
+                                    <p class="text-[9px] text-slate-500 font-bold uppercase mb-1 font-mono">Streak Health</p>
+                                    <p class="text-xl font-black text-brutalist-green font-vietnam">Strong</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Behavioral AI Insights (Line Charts) -->
+                    <div class="lg:col-span-8 brutalist-card p-8 overflow-hidden">
+                        <div class="flex justify-between items-center mb-6">
+                            <div class="flex items-center gap-3">
+                                <span class="material-symbols-outlined text-brutalist-purple">insights</span>
+                                <h2 class="font-vietnam text-xl font-black text-brutalist-dark">Biểu đồ Phân tích AI</h2>
+                            </div>
+                            <div class="flex gap-1 bg-brutalist-light-slate p-1 rounded-lg border-2 border-brutalist-dark">
+                                <button onclick="changeChart('live')" id="chart-btn-live" class="px-3 py-1 rounded text-[10px] font-mono font-bold bg-white border border-brutalist-dark shadow-[1px_1px_0_rgba(15,23,42,1)] text-brutalist-dark">Tập trung</button>
+                                <button onclick="changeChart('weekly')" id="chart-btn-weekly" class="px-3 py-1 rounded text-[10px] font-mono font-bold text-slate-500">Tuần</button>
+                            </div>
+                        </div>
+                        <div class="relative h-56 w-full bg-slate-50 border-2 border-brutalist-dark rounded-xl p-2">
+                            <!-- Live Chart SVG -->
+                            <svg id="live-chart-svg" class="w-full h-full" preserveAspectRatio="none" viewBox="0 0 1000 300">
+                                <line stroke="rgba(15,23,42,0.06)" stroke-width="2" x1="0" x2="1000" y1="50" y2="50"></line>
+                                <line stroke="rgba(15,23,42,0.06)" stroke-width="2" x1="0" x2="1000" y1="150" y2="150"></line>
+                                <line stroke="rgba(15,23,42,0.06)" stroke-width="2" x1="0" x2="1000" y1="250" y2="250"></line>
+                                <!-- Line 1: Attention Span -->
+                                <path id="attention-path" d="M0,200 Q100,180 200,100 T400,140 T600,60 T800,115 T1000,40" fill="none" stroke="#8B5CF6" stroke-linecap="round" stroke-width="4"></path>
+                                <!-- Line 2: Motivation -->
+                                <path id="motivation-path" d="M0,250 Q150,230 300,180 T600,120 T900,150 T1000,90" fill="none" stroke="#0284C7" stroke-linecap="round" stroke-width="4"></path>
+                                <circle cx="600" cy="60" fill="#8B5CF6" stroke="#0F172A" stroke-width="2" r="6"></circle>
+                                <circle cx="1000" cy="40" fill="#8B5CF6" stroke="#0F172A" stroke-width="2" r="6"></circle>
+                            </svg>
+                        </div>
+                        <div class="grid grid-cols-3 gap-4 mt-6 border-t-2 border-brutalist-dark pt-4">
+                            <div class="flex items-center gap-2.5">
+                                <div class="w-3 h-3 rounded-full bg-brutalist-purple border border-brutalist-dark"></div>
+                                <div>
+                                    <p class="text-[9px] text-slate-500 font-mono font-bold">ATTENTION LEVEL</p>
+                                    <p id="attention-stat" class="text-xs font-bold text-brutalist-dark">92% (High Peak)</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-2.5">
+                                <div class="w-3 h-3 rounded-full bg-brutalist-blue border border-brutalist-dark"></div>
+                                <div>
+                                    <p class="text-[9px] text-slate-500 font-mono font-bold">MOTIVATION TREND</p>
+                                    <p class="text-xs font-bold text-brutalist-dark">Upward Slope</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-2.5">
+                                <div class="w-3 h-3 rounded-full bg-brutalist-yellow border border-brutalist-dark"></div>
+                                <div>
+                                    <p class="text-[9px] text-slate-500 font-mono font-bold">HABIT CONSISTENCY</p>
+                                    <p class="text-xs font-bold text-brutalist-dark">12 Days Active</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Real-time Updates Live Feed -->
+                    <div class="lg:col-span-4 brutalist-card p-6 flex flex-col justify-between">
+                        <div class="flex items-center justify-between mb-4 border-b-2 border-brutalist-dark pb-2">
+                            <h2 class="font-vietnam text-lg font-black text-brutalist-dark">Dòng trạng thái</h2>
+                            <span class="flex h-2.5 w-2.5 rounded-full bg-red-500 animate-pulse border border-brutalist-dark"></span>
+                        </div>
+                        <div id="live-stream-feed" class="space-y-3 custom-scrollbar overflow-y-auto pr-1 max-h-[300px]">
+                            <!-- Hydrated Dynamically -->
+                            <div class="p-3 rounded-xl border-2 border-brutalist-dark bg-brutalist-light-slate flex gap-3">
+                                <div class="w-8 h-8 rounded-full bg-brutalist-purple/20 flex items-center justify-center flex-shrink-0 border border-brutalist-dark">
+                                    <span class="material-symbols-outlined text-brutalist-dark text-sm">school</span>
+                                </div>
+                                <div>
+                                    <p class="text-xs font-bold text-brutalist-dark"><span class="font-black">Leo</span> started Space Travel quest</p>
+                                    <p class="text-[10px] text-slate-500 mt-0.5 font-bold font-mono">Just now • Auto-Sync</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Habit Customizer Controls -->
+                    <div class="lg:col-span-5 brutalist-card p-8">
+                        <div class="flex items-center gap-3 mb-6">
+                            <span class="material-symbols-outlined text-brutalist-blue">tune</span>
+                            <h2 class="font-vietnam text-xl font-black text-brutalist-dark">Thiết lập mục tiêu</h2>
+                        </div>
+                        <div class="space-y-6">
+                            <div>
+                                <div class="flex justify-between mb-2">
+                                    <label class="text-sm font-extrabold text-brutalist-dark">Thói quen đọc sách hàng ngày</label>
+                                    <span id="val-reading" class="font-bold text-brutalist-purple font-mono text-sm">30 mins</span>
+                                </div>
+                                <input id="slider-reading" class="w-full h-2 bg-brutalist-light-slate rounded-lg appearance-none cursor-pointer accent-brutalist-purple border-2 border-brutalist-dark" type="range" min="15" max="90" step="5" value="30" oninput="updateGoalDisplay('reading', this.value)"/>
+                            </div>
+                            <div>
+                                <div class="flex justify-between mb-2">
+                                    <label class="text-sm font-extrabold text-brutalist-dark">Mục tiêu học khoa học</label>
+                                    <span id="val-science" class="font-bold text-brutalist-blue font-mono text-sm">20 mins</span>
+                                </div>
+                                <input id="slider-science" class="w-full h-2 bg-brutalist-light-slate rounded-lg appearance-none cursor-pointer accent-brutalist-blue border-2 border-brutalist-dark" type="range" min="10" max="60" step="5" value="20" oninput="updateGoalDisplay('science', this.value)"/>
+                            </div>
+                            <div>
+                                <div class="flex justify-between mb-2">
+                                    <label class="text-sm font-extrabold text-brutalist-dark">Mục tiêu rèn luyện Toán</label>
+                                    <span id="val-math" class="font-bold text-brutalist-orange font-mono text-sm">25 mins</span>
+                                </div>
+                                <input id="slider-math" class="w-full h-2 bg-brutalist-light-slate rounded-lg appearance-none cursor-pointer accent-brutalist-orange border-2 border-brutalist-dark" type="range" min="10" max="60" step="5" value="25" oninput="updateGoalDisplay('math', this.value)"/>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Family Chat / Motivation Feed -->
+                    <div class="lg:col-span-7 brutalist-card p-8 flex flex-col justify-between">
+                        <div class="flex justify-between items-center mb-4">
+                            <div class="flex items-center gap-3">
+                                <span class="material-symbols-outlined text-brutalist-orange">forum</span>
+                                <h2 class="font-vietnam text-xl font-black text-brutalist-dark">Kênh nhắn tin động viên</h2>
+                            </div>
+                        </div>
+                        
+                        <!-- Chat Dialog Feed -->
+                        <div id="parent-chat-box" class="bg-brutalist-cream border-2 border-brutalist-dark rounded-2xl p-4 mb-4 custom-scrollbar overflow-y-auto space-y-4 max-h-[220px]">
+                            <!-- Hydrated Dynamically -->
+                        </div>
+                        
+                        <div class="space-y-4">
+                            <div class="flex gap-2">
+                                <button onclick="sendQuickEmoji('🚀')" class="bg-white border-2 border-brutalist-dark rounded-xl px-3 py-1 text-xs font-bold brutalist-btn-sm">🚀 Động viên</button>
+                                <button onclick="sendQuickEmoji('⭐')" class="bg-white border-2 border-brutalist-dark rounded-xl px-3 py-1 text-xs font-bold brutalist-btn-sm">⭐ Tặng 50 Sao</button>
+                                <button onclick="sendQuickEmoji('👏')" class="bg-white border-2 border-brutalist-dark rounded-xl px-3 py-1 text-xs font-bold brutalist-btn-sm">👏 Khen ngợi</button>
+                            </div>
+                            <div class="relative">
+                                <input id="parent-chat-input" class="w-full bg-white border-2 border-brutalist-dark rounded-xl py-3 px-4 pr-12 text-xs focus:outline-none transition-all shadow-[2px_2px_0_rgba(15,23,42,1)]" placeholder="Nhập lời nhắn gửi đến con..." type="text" onkeydown="if(event.key === 'Enter') sendParentMessage()"/>
+                                <button onclick="sendParentMessage()" class="absolute right-3 top-1/2 -translate-y-1/2 text-brutalist-dark hover:scale-110 transition-transform">
+                                    <span class="material-symbols-outlined text-xl align-middle font-bold">send</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Add Reward Modal -->
+    <div id="add-reward-modal" class="fixed inset-0 z-[200] flex items-center justify-center p-4" style="display:none!important;">
+        <div onclick="closeAddRewardModal()" class="absolute inset-0 bg-brutalist-dark/60 backdrop-blur-sm"></div>
+        <div class="relative w-full max-w-md brutalist-card p-8 bg-white flex flex-col gap-5 z-10">
+            <div class="flex items-center justify-between">
+                <h2 class="font-vietnam text-xl font-black text-brutalist-dark">Thêm quà tặng mới</h2>
+                <button onclick="closeAddRewardModal()" class="w-9 h-9 rounded-xl border-2 border-brutalist-dark bg-brutalist-light-slate flex items-center justify-center brutalist-btn-sm">
+                    <span class="material-symbols-outlined text-sm">close</span>
+                </button>
+            </div>
+            <div class="flex flex-col gap-4">
+                <div>
+                    <label class="text-xs font-extrabold text-brutalist-dark uppercase tracking-wide mb-1 block">Tên quà</label>
+                    <input id="new-reward-name" type="text" placeholder="VD: Đi công viên" class="w-full border-2 border-brutalist-dark rounded-xl px-4 py-2.5 text-sm font-semibold focus:outline-none focus:bg-brutalist-yellow/10 shadow-[2px_2px_0_rgba(15,23,42,1)]" />
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="text-xs font-extrabold text-brutalist-dark uppercase tracking-wide mb-1 block">Chi phí (Sao)</label>
+                        <input id="new-reward-cost" type="number" placeholder="100" min="10" max="9999" class="w-full border-2 border-brutalist-dark rounded-xl px-4 py-2.5 text-sm font-semibold focus:outline-none focus:bg-brutalist-yellow/10 shadow-[2px_2px_0_rgba(15,23,42,1)]" />
+                    </div>
+                    <div>
+                        <label class="text-xs font-extrabold text-brutalist-dark uppercase tracking-wide mb-1 block">Danh mục</label>
+                        <select id="new-reward-cat" class="w-full border-2 border-brutalist-dark rounded-xl px-4 py-2.5 text-sm font-semibold focus:outline-none bg-white shadow-[2px_2px_0_rgba(15,23,42,1)]">
+                            <option value="hoatdong">🎮 Hoạt động</option>
+                            <option value="amthuc">🍦 Ẩm thực</option>
+                            <option value="giaitri">🎬 Giải trí</option>
+                            <option value="khac">✨ Khác</option>
+                        </select>
+                    </div>
+                </div>
+                <div>
+                    <label class="text-xs font-extrabold text-brutalist-dark uppercase tracking-wide mb-1 block">Icon (Material Symbol)</label>
+                    <div class="flex gap-2 flex-wrap" id="icon-picker">
+                        <button type="button" onclick="selectRewardIcon('sports_esports')" class="icon-opt w-10 h-10 rounded-xl border-2 border-brutalist-dark flex items-center justify-center bg-white brutalist-btn-sm selected-icon"><span class="material-symbols-outlined text-lg">sports_esports</span></button>
+                        <button type="button" onclick="selectRewardIcon('movie')" class="icon-opt w-10 h-10 rounded-xl border-2 border-brutalist-dark flex items-center justify-center bg-white brutalist-btn-sm"><span class="material-symbols-outlined text-lg">movie</span></button>
+                        <button type="button" onclick="selectRewardIcon('icecream')" class="icon-opt w-10 h-10 rounded-xl border-2 border-brutalist-dark flex items-center justify-center bg-white brutalist-btn-sm"><span class="material-symbols-outlined text-lg">icecream</span></button>
+                        <button type="button" onclick="selectRewardIcon('park')" class="icon-opt w-10 h-10 rounded-xl border-2 border-brutalist-dark flex items-center justify-center bg-white brutalist-btn-sm"><span class="material-symbols-outlined text-lg">park</span></button>
+                        <button type="button" onclick="selectRewardIcon('restaurant')" class="icon-opt w-10 h-10 rounded-xl border-2 border-brutalist-dark flex items-center justify-center bg-white brutalist-btn-sm"><span class="material-symbols-outlined text-lg">restaurant</span></button>
+                        <button type="button" onclick="selectRewardIcon('shopping_cart')" class="icon-opt w-10 h-10 rounded-xl border-2 border-brutalist-dark flex items-center justify-center bg-white brutalist-btn-sm"><span class="material-symbols-outlined text-lg">shopping_cart</span></button>
+                        <button type="button" onclick="selectRewardIcon('celebration')" class="icon-opt w-10 h-10 rounded-xl border-2 border-brutalist-dark flex items-center justify-center bg-white brutalist-btn-sm"><span class="material-symbols-outlined text-lg">celebration</span></button>
+                        <button type="button" onclick="selectRewardIcon('toys')" class="icon-opt w-10 h-10 rounded-xl border-2 border-brutalist-dark flex items-center justify-center bg-white brutalist-btn-sm"><span class="material-symbols-outlined text-lg">toys</span></button>
+                    </div>
+                    <input type="hidden" id="new-reward-icon" value="sports_esports" />
+                </div>
+            </div>
+            <button onclick="confirmAddReward()" class="w-full py-3 bg-brutalist-green text-white font-vietnam font-black text-sm rounded-2xl brutalist-btn uppercase tracking-wide">Tạo quà tặng ✓</button>
+        </div>
+    </div>
+
+    <!-- Floating Action Button -->
+    <button onclick="showToast('Thêm mục tiêu mới cho thành viên gia đình.')" class="fixed bottom-8 right-8 w-14 h-14 rounded-full bg-brutalist-yellow border-3 border-brutalist-dark shadow-[4px_4px_0_rgba(15,23,42,1)] hover:scale-105 active:scale-95 transition-transform flex items-center justify-center text-brutalist-dark z-50">
+        <span class="material-symbols-outlined text-3xl font-black">add</span>
+    </button>
+
+    <!-- Exercise Modal -->
+    <div id="exercise-modal" class="fixed inset-0 z-[200] flex items-center justify-center p-4" style="display:none!important;">
+        <!-- Backdrop -->
+        <div onclick="closeExercise()" class="absolute inset-0 bg-brutalist-dark/60 backdrop-blur-sm"></div>
+        <!-- Modal Panel -->
+        <div class="relative w-full max-w-lg brutalist-card p-8 bg-white flex flex-col gap-6 z-10" style="max-height:90vh;overflow-y:auto;">
+            <!-- Header -->
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div id="ex-icon" class="p-3 rounded-2xl bg-brutalist-blue/10 text-brutalist-blue border-2 border-brutalist-dark shadow-[3px_3px_0_rgba(15,23,42,1)]">
+                        <span id="ex-icon-sym" class="material-symbols-outlined text-xl align-middle">rocket_launch</span>
+                    </div>
+                    <div>
+                        <p class="text-[10px] font-mono text-slate-400 uppercase tracking-widest font-bold">Bài tập</p>
+                        <h2 id="ex-title" class="font-vietnam text-lg font-black text-brutalist-dark">Science Quest</h2>
+                    </div>
+                </div>
+                <button onclick="closeExercise()" class="w-9 h-9 rounded-xl border-2 border-brutalist-dark bg-brutalist-light-slate flex items-center justify-center brutalist-btn-sm">
+                    <span class="material-symbols-outlined text-sm">close</span>
+                </button>
+            </div>
+
+            <!-- Progress bar -->
+            <div class="w-full h-2 bg-brutalist-light-slate rounded-full border border-brutalist-dark overflow-hidden">
+                <div id="ex-progress" class="h-full bg-brutalist-purple transition-all duration-500" style="width:0%"></div>
+            </div>
+
+            <!-- Question area -->
+            <div id="ex-question-area">
+                <p id="ex-q-num" class="text-xs font-mono font-bold text-slate-400 mb-2">Câu 1/3</p>
+                <p id="ex-q-text" class="font-vietnam text-base font-bold text-brutalist-dark mb-5 leading-relaxed"></p>
+                <div id="ex-options" class="flex flex-col gap-3"></div>
+                <p id="ex-feedback" class="text-sm font-bold mt-4 hidden"></p>
+            </div>
+
+            <!-- Completed state (hidden initially) -->
+            <div id="ex-done-area" class="hidden flex-col items-center gap-4 text-center py-4">
+                <span class="text-6xl">🎉</span>
+                <h3 class="font-vietnam text-2xl font-black text-brutalist-dark">Xuất sắc!</h3>
+                <p id="ex-done-msg" class="text-sm font-semibold text-slate-500">Bạn đã hoàn thành bài tập và nhận được sao thưởng!</p>
+                <button onclick="closeExercise()" class="px-8 py-3 bg-brutalist-green text-white font-vietnam font-black text-sm rounded-2xl brutalist-btn uppercase tracking-wide">Tuyệt vời! ✓</button>
+            </div>
+
+            <!-- Next button -->
+            <button id="ex-next-btn" onclick="exerciseNext()" class="w-full py-3 bg-brutalist-yellow text-brutalist-dark font-vietnam font-black text-sm rounded-2xl brutalist-btn uppercase tracking-wide hidden">
+                Tiếp theo →
+            </button>
+        </div>
+    </div>
+
+    <!-- State management script -->
+    <script>
+        let state = {
+            stars: 150,
+            streakDays: 12,
+            challenges: {
+                1: { title: "Science Quest: Learn Space Travel", completed: false, xp: 50 },
+                2: { title: "Math Puzzle: Fraction Patterns", completed: false, xp: 40 }
+            },
+            goals: {
+                reading: 30,
+                science: 20,
+                math: 25
+            },
+            chat: [
+                { sender: "parent", text: "Hôm nay con rèn luyện thói quen rất tốt, cố gắng phát huy nhé! 🚀", time: "1 giờ trước" },
+                { sender: "student", text: "Vâng ạ, con vừa hoàn thành thử thách khoa học vũ trụ rồi mẹ!", time: "40 phút trước" }
+            ],
+            actions: [
+                { type: "stars", text: "Mina đã nhận 20 Sao trong buổi rèn luyện sáng tạo", time: "15 phút trước" },
+                { type: "explore", text: "Leo đã mở khóa cột mốc 'Nhà thám hiểm tinh vân'", time: "30 phút trước" }
+            ],
+            rewards: [
+                { id: 1, name: 'Movie Night',    icon: 'movie',          cost: 200, cat: 'giaitri',  color: '#FBBF24', active: true },
+                { id: 2, name: 'Dessert Choice', icon: 'icecream',       cost: 100, cat: 'amthuc',   color: '#EC4899', active: true },
+                { id: 3, name: '+1hr Gaming',    icon: 'sports_esports', cost: 150, cat: 'hoatdong', color: '#10B981', active: true },
+                { id: 4, name: 'Đi công viên',   icon: 'park',           cost: 250, cat: 'hoatdong', color: '#0284C7', active: true },
+                { id: 5, name: 'Bữa tối chọn món', icon: 'restaurant',  cost: 180, cat: 'amthuc',   color: '#FF7A45', active: true },
+                { id: 6, name: 'Mua đồ chơi mới', icon: 'toys',         cost: 300, cat: 'khac',     color: '#8B5CF6', active: true }
+            ],
+            rewardIdCounter: 7,
+            pendingRedemptions: []
+        };
+
+        let activeRole = "guest"; // guest, student, parent
+        let currentUser = null;
+
+        function initSystem() {
+            // Load state
+            const savedState = localStorage.getItem('nexora_os_state');
+            if (savedState) {
+                state = JSON.parse(savedState);
+            }
+            
+            // Load active user session from server
+            const session = localStorage.getItem('nexora_user_session');
+            if (session) {
+                currentUser = JSON.parse(session);
+                activeRole = currentUser.role;
+            } else {
+                activeRole = "guest";
+            }
+
+            // Ensure rewards array exists for old saved states
+            if (!state.rewards) {
+                state.rewards = [
+                    { id: 1, name: 'Movie Night',    icon: 'movie',          cost: 200, cat: 'giaitri',  color: '#FBBF24', active: true },
+                    { id: 2, name: 'Dessert Choice', icon: 'icecream',       cost: 100, cat: 'amthuc',   color: '#EC4899', active: true },
+                    { id: 3, name: '+1hr Gaming',    icon: 'sports_esports', cost: 150, cat: 'hoatdong', color: '#10B981', active: true },
+                    { id: 4, name: 'Đi công viên',   icon: 'park',           cost: 250, cat: 'hoatdong', color: '#0284C7', active: true },
+                    { id: 5, name: 'Bữa tối chọn món', icon: 'restaurant',  cost: 180, cat: 'amthuc',   color: '#FF7A45', active: true },
+                    { id: 6, name: 'Mua đồ chơi mới', icon: 'toys',         cost: 300, cat: 'khac',     color: '#8B5CF6', active: true }
+                ];
+                state.rewardIdCounter = 7;
+            }
+            if (!state.pendingRedemptions) state.pendingRedemptions = [];
+
+            syncView(activeRole);
+            syncStateToUI();
+            renderChat();
+            renderFeed();
+            renderStudentRewards('all');
+        }
+
+        function saveState() {
+            localStorage.setItem('nexora_os_state', JSON.stringify(state));
+        }
+
+        // Perform logout and session wipe
+        function performLogout() {
+            activeRole = "guest";
+            currentUser = null;
+            localStorage.removeItem('nexora_user_session');
+            localStorage.removeItem('nexora_active_role');
+            syncView("guest");
+            showToast("Đã đăng xuất tài khoản.");
+        }
+
+        // Sync view visibility
+        function syncView(role) {
+            const landingView = document.getElementById('landing-view');
+            const studentView = document.getElementById('student-view');
+            const parentView = document.getElementById('parent-view');
+
+            // Hide all first
+            landingView.classList.add('hidden-view');
+            studentView.classList.add('hidden-view');
+            parentView.classList.add('hidden-view');
+
+            setTimeout(() => {
+                landingView.style.display = 'none';
+                studentView.style.display = 'none';
+                parentView.style.display = 'none';
+
+                // Hide mascot & landing header when not on landing
+                const mascot = document.getElementById('mascot');
+                const landingHeader = document.getElementById('landing-header');
+                if (role === 'guest') {
+                    if (mascot) mascot.classList.add('visible');
+                    if (landingHeader) landingHeader.style.display = '';
+                } else {
+                    if (mascot) mascot.classList.remove('visible');
+                    if (landingHeader) landingHeader.style.display = 'none';
+                }
+
+                if (role === 'student') {
+                    // Update student greeting + avatar dynamically
+                    const name = currentUser ? currentUser.name : 'Leo';
+                    document.getElementById('student-welcome-title').textContent = `Chào ${name}! 👋`;
+                    const initials = name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
+                    document.getElementById('student-avatar-initials').textContent = initials;
+
+                    studentView.style.display = 'block';
+                    setTimeout(() => studentView.classList.remove('hidden-view'), 50);
+                } else if (role === 'parent') {
+                    // Update parent greeting + avatar dynamically
+                    const name = currentUser ? currentUser.name : 'Sarah';
+                    document.getElementById('parent-welcome-title').textContent = `Chào mừng trở lại, ${name}. ☀️`;
+                    const initials = name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
+                    document.getElementById('parent-avatar-initials').textContent = initials;
+
+                    parentView.style.display = 'block';
+                    setTimeout(() => parentView.classList.remove('hidden-view'), 50);
+                } else {
+                    landingView.style.display = 'flex';
+                    setTimeout(() => landingView.classList.remove('hidden-view'), 50);
+                }
+            }, 300);
+        }
+
+        function syncStateToUI() {
+            document.getElementById('student-stars-display').innerHTML = `<span class="material-symbols-outlined text-brutalist-dark mr-1 inline-block align-middle" style="font-variation-settings: 'FILL' 1;">stars</span>${state.stars} Star points`;
+            document.getElementById('streak-display-val').textContent = `${state.streakDays} Days`;
+            document.getElementById('parent-streak-val').textContent = `${state.streakDays} Days`;
+            
+            const baseCircumference = 552.92;
+            const progressRatio = Math.min(state.streakDays / 30, 1);
+            const offset = baseCircumference - (progressRatio * baseCircumference);
+            document.getElementById('streak-circle').style.strokeDashoffset = offset;
+
+            for (let id in state.challenges) {
+                const card = document.getElementById(`challenge-card-${id}`);
+                const checkbox = document.getElementById(`challenge-checkbox-${id}`);
+                const checkIcon = checkbox.querySelector('.material-symbols-outlined');
+                
+                if (card && checkbox && checkIcon) {
+                    if (state.challenges[id].completed) {
+                        card.classList.add('bg-brutalist-purple/5');
+                        checkbox.classList.add('bg-brutalist-purple/20');
+                        checkIcon.classList.remove('opacity-0');
+                        checkIcon.classList.add('opacity-100');
+                    } else {
+                        card.classList.remove('bg-brutalist-purple/5');
+                        checkbox.classList.remove('bg-brutalist-purple/20');
+                        checkIcon.classList.remove('opacity-100');
+                        checkIcon.classList.add('opacity-0');
+                    }
+                }
+            }
+
+            document.getElementById('slider-reading').value = state.goals.reading;
+            document.getElementById('val-reading').textContent = `${state.goals.reading} mins`;
+            document.getElementById('slider-science').value = state.goals.science;
+            document.getElementById('val-science').textContent = `${state.goals.science} mins`;
+            document.getElementById('slider-math').value = state.goals.math;
+            document.getElementById('val-math').textContent = `${state.goals.math} mins`;
+        }
+
+        // Exercise modal state
+        const exercises = {
+            1: {
+                icon: 'rocket_launch',
+                iconColor: 'bg-brutalist-blue/10 text-brutalist-blue',
+                questions: [
+                    {
+                        q: 'Hành tinh nào gần Mặt Trời nhất trong Hệ Mặt Trời?',
+                        opts: ['Sao Kim', 'Sao Thủy', 'Trái Đất', 'Sao Hỏa'],
+                        ans: 1
+                    },
+                    {
+                        q: 'Vận tốc ánh sáng xấp xỉ bao nhiêu km/giây?',
+                        opts: ['100.000 km/s', '300.000 km/s', '500.000 km/s', '1.000.000 km/s'],
+                        ans: 1
+                    },
+                    {
+                        q: 'Tên tàu vũ trụ đầu tiên đưa người lên Mặt Trăng là gì?',
+                        opts: ['Voyager 1', 'Apollo 11', 'Sputnik 1', 'Columbia'],
+                        ans: 1
+                    }
+                ]
+            },
+            2: {
+                icon: 'calculate',
+                iconColor: 'bg-brutalist-purple/10 text-brutalist-purple',
+                questions: [
+                    {
+                        q: '1/2 + 1/4 bằng bao nhiêu?',
+                        opts: ['1/6', '2/6', '3/4', '1/3'],
+                        ans: 2
+                    },
+                    {
+                        q: 'Phân số nào lớn hơn: 3/5 hay 2/3?',
+                        opts: ['3/5', '2/3', 'Bằng nhau', 'Không so sánh được'],
+                        ans: 1
+                    },
+                    {
+                        q: '3/4 - 1/8 bằng bao nhiêu?',
+                        opts: ['2/4', '5/8', '1/2', '4/8'],
+                        ans: 1
+                    }
+                ]
+            }
+        };
+
+        let activeExercise = null; // { id, qIndex, score }
+
+        function openExercise(id) {
+            if (state.challenges[id].completed) {
+                showToast('Bạn đã hoàn thành nhiệm vụ này rồi! 🎉');
+                return;
+            }
+            activeExercise = { id, qIndex: 0, score: 0, answered: false };
+            const ex = exercises[id];
+            const modal = document.getElementById('exercise-modal');
+
+            // Set header
+            document.getElementById('ex-icon-sym').textContent = ex.icon;
+            document.getElementById('ex-icon').className = `p-3 rounded-2xl ${ex.iconColor} border-2 border-brutalist-dark shadow-[3px_3px_0_rgba(15,23,42,1)]`;
+            document.getElementById('ex-title').textContent = state.challenges[id].title;
+
+            // Reset areas
+            document.getElementById('ex-question-area').classList.remove('hidden');
+            document.getElementById('ex-done-area').classList.remove('flex');
+            document.getElementById('ex-done-area').classList.add('hidden');
+            document.getElementById('ex-next-btn').classList.add('hidden');
+
+            renderExerciseQuestion();
+            modal.style.removeProperty('display');
+            modal.style.display = 'flex';
+        }
+
+        function renderExerciseQuestion() {
+            const { id, qIndex } = activeExercise;
+            const ex = exercises[id];
+            const total = ex.questions.length;
+            const q = ex.questions[qIndex];
+
+            document.getElementById('ex-q-num').textContent = `Câu ${qIndex + 1}/${total}`;
+            document.getElementById('ex-q-text').textContent = q.q;
+            document.getElementById('ex-progress').style.width = `${(qIndex / total) * 100}%`;
+            document.getElementById('ex-feedback').className = 'text-sm font-bold mt-4 hidden';
+            document.getElementById('ex-next-btn').classList.add('hidden');
+            activeExercise.answered = false;
+
+            const optsEl = document.getElementById('ex-options');
+            optsEl.innerHTML = '';
+            q.opts.forEach((opt, i) => {
+                const btn = document.createElement('button');
+                btn.className = 'w-full text-left px-4 py-3 rounded-xl border-2 border-brutalist-dark bg-brutalist-light-slate font-vietnam font-bold text-sm text-brutalist-dark brutalist-btn-sm hover:bg-brutalist-yellow/20 transition-all';
+                btn.textContent = `${String.fromCharCode(65 + i)}. ${opt}`;
+                btn.onclick = () => selectAnswer(i);
+                btn.id = `ex-opt-${i}`;
+                optsEl.appendChild(btn);
+            });
+        }
+
+        function selectAnswer(selected) {
+            if (activeExercise.answered) return;
+            activeExercise.answered = true;
+
+            const { id, qIndex } = activeExercise;
+            const correct = exercises[id].questions[qIndex].ans;
+            const feedback = document.getElementById('ex-feedback');
+
+            // Disable all option buttons
+            exercises[id].questions[qIndex].opts.forEach((_, i) => {
+                const btn = document.getElementById(`ex-opt-${i}`);
+                if (!btn) return;
+                btn.onclick = null;
+                btn.style.cursor = 'default';
+                if (i === correct) {
+                    btn.className = btn.className.replace('bg-brutalist-light-slate', 'bg-brutalist-green/20') + ' border-brutalist-green';
+                    btn.style.borderColor = '#10B981';
+                } else if (i === selected && selected !== correct) {
+                    btn.className = btn.className.replace('bg-brutalist-light-slate', 'bg-red-50') + ' border-red-400';
+                    btn.style.borderColor = '#f87171';
+                }
+            });
+
+            if (selected === correct) {
+                activeExercise.score++;
+                feedback.textContent = '✅ Chính xác! Rất giỏi!';
+                feedback.className = 'text-sm font-bold mt-4 text-brutalist-green';
+            } else {
+                feedback.textContent = `❌ Chưa đúng! Đáp án đúng là: ${String.fromCharCode(65 + correct)}. ${exercises[id].questions[qIndex].opts[correct]}`;
+                feedback.className = 'text-sm font-bold mt-4 text-red-500';
+            }
+            feedback.classList.remove('hidden');
+            document.getElementById('ex-next-btn').classList.remove('hidden');
+        }
+
+        function exerciseNext() {
+            const { id } = activeExercise;
+            const total = exercises[id].questions.length;
+            activeExercise.qIndex++;
+
+            if (activeExercise.qIndex >= total) {
+                // All questions done → auto-complete challenge
+                completeChallenge(id);
+            } else {
+                renderExerciseQuestion();
+            }
+        }
+
+        function completeChallenge(id) {
+            if (state.challenges[id].completed) return;
+            state.challenges[id].completed = true;
+            const userName = currentUser ? currentUser.name : 'Leo';
+            state.stars += 30;
+            state.streakDays += 1;
+            addFeedItem('school', `${userName} hoàn thành "${state.challenges[id].title}"`);
+            addFeedItem('star', `${userName} nhận được 30 Sao thưởng`);
+            saveState();
+            syncStateToUI();
+            renderFeed();
+
+            // Show completion screen
+            document.getElementById('ex-question-area').classList.add('hidden');
+            document.getElementById('ex-next-btn').classList.add('hidden');
+            document.getElementById('ex-progress').style.width = '100%';
+            const doneArea = document.getElementById('ex-done-area');
+            const score = activeExercise.score;
+            const total = exercises[id].questions.length;
+            document.getElementById('ex-done-msg').textContent = `Điểm: ${score}/${total} — Bạn đã nhận +30 Sao thưởng! ⭐`;
+            doneArea.classList.remove('hidden');
+            doneArea.classList.add('flex');
+
+            // Update card status
+            const statusEl = document.getElementById(`challenge-status-${id}`);
+            if (statusEl) statusEl.textContent = '✅ Đã hoàn thành';
+        }
+
+        function closeExercise() {
+            document.getElementById('exercise-modal').style.display = 'none';
+            activeExercise = null;
+        }
+
+        /* =============================================
+           REWARD CATALOG LOGIC
+           ============================================= */
+        let activeRewardFilter = 'all';
+
+        const catColors = {
+            hoatdong: '#10B981', amthuc: '#EC4899', giaitri: '#FBBF24', khac: '#8B5CF6'
+        };
+        const catLabels = {
+            hoatdong: '🎮 Hoạt động', amthuc: '🍦 Ẩm thực', giaitri: '🎬 Giải trí', khac: '✨ Khác'
+        };
+
+        function filterRewards(cat) {
+            activeRewardFilter = cat;
+            // Update tab styles
+            ['all','hoatdong','amthuc','giaitri','khac'].forEach(c => {
+                const btn = document.getElementById(`rf-${c}`);
+                if (!btn) return;
+                if (c === cat) {
+                    btn.className = 'px-3 py-1 rounded-full text-xs font-black border-2 border-brutalist-dark bg-brutalist-dark text-white brutalist-btn-sm';
+                } else {
+                    btn.className = 'px-3 py-1 rounded-full text-xs font-black border-2 border-brutalist-dark bg-white text-brutalist-dark brutalist-btn-sm';
+                }
+            });
+            renderStudentRewards(cat);
+        }
+
+        function renderStudentRewards(cat) {
+            const grid = document.getElementById('student-reward-grid');
+            if (!grid) return;
+            const filtered = state.rewards.filter(r => r.active && (cat === 'all' || r.cat === cat));
+            grid.innerHTML = '';
+
+            if (filtered.length === 0) {
+                grid.innerHTML = '<p class="col-span-3 text-center text-slate-400 font-semibold py-8">Chưa có quà tặng trong danh mục này.</p>';
+                return;
+            }
+
+            filtered.forEach(r => {
+                const canAfford = state.stars >= r.cost;
+                const isPending = state.pendingRedemptions.some(p => p.rewardId === r.id && p.status === 'pending');
+                const card = document.createElement('div');
+                card.className = 'brutalist-card p-6 flex flex-col gap-4 relative overflow-hidden group transition-all duration-200' + (canAfford ? '' : ' opacity-70');
+
+                let btnHtml;
+                if (isPending) {
+                    btnHtml = `<button disabled class="w-full py-2 rounded-xl border-2 border-brutalist-orange bg-brutalist-orange/10 text-brutalist-orange text-xs font-extrabold uppercase flex items-center justify-center gap-1"><span class="material-symbols-outlined text-sm">pending</span> Đang chờ duyệt</button>`;
+                } else if (canAfford) {
+                    btnHtml = `<button onclick="redeemReward(${r.id})" class="w-full py-2 rounded-xl border-2 border-brutalist-dark bg-brutalist-yellow text-brutalist-dark text-xs font-extrabold uppercase brutalist-btn-sm hover:bg-brutalist-green hover:text-white hover:border-brutalist-green transition-all">Đổi ngay ⭐</button>`;
+                } else {
+                    btnHtml = `<button disabled class="w-full py-2 rounded-xl border-2 border-slate-200 bg-brutalist-light-slate text-slate-400 text-xs font-extrabold uppercase">Thiếu ${r.cost - state.stars} Sao</button>`;
+                }
+
+                card.innerHTML = `
+                    <div class="flex items-start justify-between">
+                        <div class="w-14 h-14 rounded-2xl border-2 border-brutalist-dark shadow-[3px_3px_0_rgba(15,23,42,1)] flex items-center justify-center flex-shrink-0" style="background:${r.color}22;">
+                            <span class="material-symbols-outlined text-2xl" style="color:${r.color}" >${r.icon}</span>
+                        </div>
+                        <span class="text-[10px] font-mono font-black px-2 py-0.5 rounded-full border border-brutalist-dark" style="background:${catColors[r.cat]}22;color:${catColors[r.cat]}">${catLabels[r.cat]}</span>
+                    </div>
+                    <div>
+                        <h5 class="font-vietnam font-black text-base text-brutalist-dark mb-1">${r.name}</h5>
+                        <div class="flex items-center gap-1">
+                            <span class="material-symbols-outlined text-brutalist-yellow text-sm" style="font-variation-settings:'FILL' 1">stars</span>
+                            <span class="font-mono font-black text-sm text-brutalist-dark">${r.cost} Sao</span>
+                            ${canAfford ? '<span class="text-[10px] font-bold text-brutalist-green ml-2">✓ Đủ sao</span>' : ''}
+                        </div>
+                    </div>
+                    ${btnHtml}
+                `;
+                grid.appendChild(card);
+            });
+
+            // Update pending banner
+            const pendingCount = state.pendingRedemptions.filter(p => p.status === 'pending').length;
+            const banner = document.getElementById('pending-banner');
+            if (banner) {
+                if (pendingCount > 0) {
+                    banner.classList.remove('hidden');
+                    banner.classList.add('flex');
+                    document.getElementById('pending-count').textContent = pendingCount;
+                } else {
+                    banner.classList.add('hidden');
+                    banner.classList.remove('flex');
+                }
+            }
+        }
+
+        function redeemReward(rewardId) {
+            const reward = state.rewards.find(r => r.id === rewardId);
+            if (!reward) return;
+            const userName = currentUser ? currentUser.name : 'Leo';
+
+            if (state.stars < reward.cost) {
+                showToast(`Chưa đủ sao! Cần thêm ${reward.cost - state.stars} Sao.`);
+                return;
+            }
+            const alreadyPending = state.pendingRedemptions.some(p => p.rewardId === rewardId && p.status === 'pending');
+            if (alreadyPending) {
+                showToast('Yêu cầu này đang chờ bố mẹ duyệt rồi!');
+                return;
+            }
+
+            state.stars -= reward.cost;
+            state.pendingRedemptions.unshift({
+                id: Date.now(),
+                rewardId,
+                rewardName: reward.name,
+                rewardIcon: reward.icon,
+                cost: reward.cost,
+                student: userName,
+                status: 'pending',
+                time: new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })
+            });
+            addFeedItem('award_star', `${userName} yêu cầu đổi quà "${reward.name}"`);
+            showToast(`✅ Đã gửi yêu cầu đổi "${reward.name}" tới bố mẹ!`);
+            saveState();
+            syncStateToUI();
+            renderFeed();
+            renderStudentRewards(activeRewardFilter);
+            updateApproveBadge();
+        }
+
+        /* --- Parent catalog management --- */
+        let activeParentTab = 'overview';
+
+        function switchParentTab(tab) {
+            activeParentTab = tab;
+            const overview = document.getElementById('parent-overview-panel');
+            const catalog = document.getElementById('parent-catalog-panel');
+            const navOverview = document.getElementById('nav-overview');
+            const navInsights = document.getElementById('nav-insights');
+            const navCatalog = document.getElementById('nav-catalog');
+
+            const activeClass = 'flex items-center gap-3 px-4 py-3 rounded-xl bg-brutalist-yellow border-2 border-brutalist-dark brutalist-btn-sm text-brutalist-dark font-bold text-sm cursor-pointer';
+            const inactiveClass = 'flex items-center gap-3 px-4 py-3 rounded-xl bg-white border-2 border-brutalist-dark brutalist-btn-sm text-brutalist-dark font-bold text-sm cursor-pointer';
+
+            navOverview.className = inactiveClass;
+            navInsights.className = inactiveClass;
+            navCatalog.className = inactiveClass;
+
+            if (tab === 'overview') {
+                navOverview.className = activeClass;
+                overview.classList.remove('hidden');
+                catalog.classList.add('hidden');
+            } else if (tab === 'catalog') {
+                navCatalog.className = activeClass;
+                catalog.classList.remove('hidden');
+                overview.classList.add('hidden');
+                renderParentCatalog();
+                renderPendingApprovals();
+            } else {
+                navInsights.className = activeClass;
+                overview.classList.remove('hidden');
+                catalog.classList.add('hidden');
+                showToast('Phân tích thói quen đang được cập nhật tự động.');
+            }
+        }
+
+        function renderParentCatalog() {
+            const grid = document.getElementById('parent-reward-grid');
+            if (!grid) return;
+            grid.innerHTML = '';
+            state.rewards.forEach(r => {
+                const card = document.createElement('div');
+                card.className = `brutalist-card p-5 flex items-center gap-4 ${r.active ? '' : 'opacity-50'}`;
+                card.innerHTML = `
+                    <div class="w-12 h-12 rounded-2xl border-2 border-brutalist-dark flex items-center justify-center flex-shrink-0" style="background:${r.color}22">
+                        <span class="material-symbols-outlined" style="color:${r.color}">${r.icon}</span>
+                    </div>
+                    <div class="flex-grow min-w-0">
+                        <p class="font-vietnam font-black text-sm text-brutalist-dark truncate">${r.name}</p>
+                        <p class="text-xs font-bold text-slate-400">${catLabels[r.cat]} · <span class="text-brutalist-dark">${r.cost} Sao</span></p>
+                    </div>
+                    <div class="flex items-center gap-2 flex-shrink-0">
+                        <button onclick="toggleRewardActive(${r.id})" title="${r.active ? 'Ẩn' : 'Hiện'}" class="w-8 h-8 rounded-lg border-2 border-brutalist-dark flex items-center justify-center brutalist-btn-sm ${r.active ? 'bg-brutalist-green/20 text-brutalist-green' : 'bg-slate-100 text-slate-400'}">
+                            <span class="material-symbols-outlined text-sm">${r.active ? 'visibility' : 'visibility_off'}</span>
+                        </button>
+                        <button onclick="deleteReward(${r.id})" class="w-8 h-8 rounded-lg border-2 border-red-300 bg-red-50 text-red-400 flex items-center justify-center brutalist-btn-sm">
+                            <span class="material-symbols-outlined text-sm">delete</span>
+                        </button>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        function renderPendingApprovals() {
+            const list = document.getElementById('parent-pending-list');
+            const countEl = document.getElementById('parent-pending-count');
+            if (!list) return;
+            const pending = state.pendingRedemptions.filter(p => p.status === 'pending');
+            if (countEl) countEl.textContent = pending.length;
+            if (pending.length === 0) {
+                list.innerHTML = '<p class="text-sm text-slate-400 font-semibold text-center py-4">Chưa có yêu cầu nào đang chờ. 🎉</p>';
+                return;
+            }
+            list.innerHTML = '';
+            pending.forEach(p => {
+                const row = document.createElement('div');
+                row.className = 'flex items-center gap-4 p-4 rounded-2xl border-2 border-brutalist-dark bg-brutalist-cream';
+                row.innerHTML = `
+                    <div class="w-10 h-10 rounded-xl border-2 border-brutalist-dark bg-brutalist-yellow/30 flex items-center justify-center flex-shrink-0">
+                        <span class="material-symbols-outlined text-lg">${p.rewardIcon}</span>
+                    </div>
+                    <div class="flex-grow min-w-0">
+                        <p class="font-vietnam font-black text-sm text-brutalist-dark">${p.rewardName}</p>
+                        <p class="text-xs font-semibold text-slate-400">${p.student} · ${p.cost} Sao · ${p.time}</p>
+                    </div>
+                    <div class="flex gap-2 flex-shrink-0">
+                        <button onclick="approveRedemption(${p.id})" class="px-3 py-1.5 bg-brutalist-green text-white text-xs font-extrabold rounded-xl border-2 border-brutalist-dark brutalist-btn-sm">Duyệt ✓</button>
+                        <button onclick="rejectRedemption(${p.id})" class="px-3 py-1.5 bg-white text-brutalist-dark text-xs font-extrabold rounded-xl border-2 border-brutalist-dark brutalist-btn-sm">Từ chối</button>
+                    </div>
+                `;
+                list.appendChild(row);
+            });
+        }
+
+        function approveRedemption(reqId) {
+            const req = state.pendingRedemptions.find(p => p.id === reqId);
+            if (!req) return;
+            req.status = 'approved';
+            addFeedItem('redeem', `Bố/mẹ đã duyệt: "${req.rewardName}" cho ${req.student}`);
+            showToast(`✅ Đã duyệt "${req.rewardName}" cho ${req.student}!`);
+            saveState();
+            renderPendingApprovals();
+            updateApproveBadge();
+            renderStudentRewards(activeRewardFilter);
+        }
+
+        function rejectRedemption(reqId) {
+            const req = state.pendingRedemptions.find(p => p.id === reqId);
+            if (!req) return;
+            req.status = 'rejected';
+            // Refund stars
+            state.stars += req.cost;
+            addFeedItem('cancel', `Bố/mẹ từ chối yêu cầu: "${req.rewardName}"`);
+            showToast(`Đã từ chối "${req.rewardName}". Sao đã được hoàn lại.`);
+            saveState();
+            syncStateToUI();
+            renderPendingApprovals();
+            updateApproveBadge();
+            renderStudentRewards(activeRewardFilter);
+        }
+
+        function toggleRewardActive(rewardId) {
+            const r = state.rewards.find(r => r.id === rewardId);
+            if (r) r.active = !r.active;
+            saveState();
+            renderParentCatalog();
+            renderStudentRewards(activeRewardFilter);
+        }
+
+        function deleteReward(rewardId) {
+            state.rewards = state.rewards.filter(r => r.id !== rewardId);
+            saveState();
+            renderParentCatalog();
+            renderStudentRewards(activeRewardFilter);
+            showToast('Đã xóa quà khỏi danh mục.');
+        }
+
+        function updateApproveBadge() {
+            const pending = state.pendingRedemptions.filter(p => p.status === 'pending').length;
+            const badge = document.getElementById('approve-badge');
+            if (!badge) return;
+            badge.textContent = pending;
+            pending > 0 ? badge.classList.remove('hidden') : badge.classList.add('hidden');
+        }
+
+        /* --- Add Reward Modal --- */
+        let selectedIcon = 'sports_esports';
+
+        function openAddRewardModal() {
+            document.getElementById('new-reward-name').value = '';
+            document.getElementById('new-reward-cost').value = '';
+            document.getElementById('new-reward-cat').value = 'hoatdong';
+            selectRewardIcon('sports_esports');
+            const modal = document.getElementById('add-reward-modal');
+            modal.style.removeProperty('display');
+            modal.style.display = 'flex';
+        }
+
+        function closeAddRewardModal() {
+            document.getElementById('add-reward-modal').style.display = 'none';
+        }
+
+        function selectRewardIcon(icon) {
+            selectedIcon = icon;
+            document.getElementById('new-reward-icon').value = icon;
+            document.querySelectorAll('.icon-opt').forEach(btn => {
+                const sym = btn.querySelector('.material-symbols-outlined').textContent.trim();
+                btn.className = sym === icon
+                    ? 'icon-opt w-10 h-10 rounded-xl border-2 border-brutalist-dark flex items-center justify-center bg-brutalist-yellow brutalist-btn-sm'
+                    : 'icon-opt w-10 h-10 rounded-xl border-2 border-brutalist-dark flex items-center justify-center bg-white brutalist-btn-sm';
+            });
+        }
+
+        function confirmAddReward() {
+            const name = document.getElementById('new-reward-name').value.trim();
+            const cost = parseInt(document.getElementById('new-reward-cost').value);
+            const cat = document.getElementById('new-reward-cat').value;
+            const icon = document.getElementById('new-reward-icon').value;
+
+            if (!name) { showToast('Vui lòng nhập tên quà!'); return; }
+            if (!cost || cost < 10) { showToast('Chi phí phải >= 10 Sao!'); return; }
+
+            const colorMap = { hoatdong: '#10B981', amthuc: '#EC4899', giaitri: '#FBBF24', khac: '#8B5CF6' };
+            state.rewards.push({
+                id: state.rewardIdCounter++,
+                name, icon, cost, cat,
+                color: colorMap[cat] || '#8B5CF6',
+                active: true
+            });
+            saveState();
+            closeAddRewardModal();
+            renderParentCatalog();
+            renderStudentRewards(activeRewardFilter);
+            showToast(`✅ Đã thêm "${name}" vào danh mục!`);
+        }
+
+        function addFeedItem(icon, text) {
+            state.actions.unshift({
+                type: icon,
+                text: text,
+                time: "Vừa xong"
+            });
+            saveState();
+        }
+
+        function renderFeed() {
+            const feedContainer = document.getElementById('live-stream-feed');
+            if (!feedContainer) return;
+            feedContainer.innerHTML = '';
+            state.actions.forEach(item => {
+                const itemDiv = document.createElement('div');
+                itemDiv.className = "p-3 rounded-xl border-2 border-brutalist-dark bg-brutalist-light-slate flex gap-3 hover:bg-white transition-all";
+                itemDiv.innerHTML = `
+                    <div class="w-8 h-8 rounded-full bg-brutalist-purple/20 flex items-center justify-center flex-shrink-0 border border-brutalist-dark">
+                        <span class="material-symbols-outlined text-brutalist-dark text-sm">${item.type}</span>
+                    </div>
+                    <div>
+                        <p class="text-xs font-bold text-brutalist-dark">${item.text}</p>
+                        <p class="text-[10px] text-slate-500 mt-0.5 font-bold">${item.time}</p>
+                    </div>
+                `;
+                feedContainer.appendChild(itemDiv);
+            });
+        }
+
+        function renderChat() {
+            const chatContainer = document.getElementById('parent-chat-box');
+            if (!chatContainer) return;
+            chatContainer.innerHTML = '';
+            state.chat.forEach(msg => {
+                const wrapperDiv = document.createElement('div');
+                wrapperDiv.className = msg.sender === 'parent' ? "flex justify-end" : "flex justify-start";
+                
+                const bubbleDiv = document.createElement('div');
+                if (msg.sender === 'parent') {
+                    bubbleDiv.className = "bg-brutalist-blue/10 border-2 border-brutalist-dark rounded-2xl rounded-tr-none p-3 max-w-[80%] shadow-[2px_2px_0_rgba(15,23,42,1)]";
+                } else {
+                    bubbleDiv.className = "bg-white border-2 border-brutalist-dark rounded-2xl rounded-tl-none p-3 max-w-[80%] shadow-[2px_2px_0_rgba(15,23,42,1)]";
+                }
+                bubbleDiv.innerHTML = `
+                    <p class="text-xs font-bold">${msg.text}</p>
+                    <p class="text-[9px] mt-1 text-slate-400 font-bold">${msg.time}</p>
+                `;
+                
+                wrapperDiv.appendChild(bubbleDiv);
+                chatContainer.appendChild(wrapperDiv);
+            });
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+
+        function sendParentMessage() {
+            const input = document.getElementById('parent-chat-input');
+            const text = input.value.trim();
+            if (!text) return;
+            
+            state.chat.push({
+                sender: "parent",
+                text: text,
+                time: "Vừa xong"
+            });
+            input.value = '';
+            
+            renderChat();
+            saveState();
+
+            // Simulate quick child reply
+            setTimeout(() => {
+                state.chat.push({
+                    sender: "student",
+                    text: "Con nhận được rồi ạ! Con cảm ơn mẹ! ❤️",
+                    time: "Vừa xong"
+                });
+                renderChat();
+                saveState();
+            }, 3000);
+        }
+
+        // Send a quick praise emoji/message
+        function sendQuickEmoji(emoji) {
+            let message = "";
+            if (emoji === '🚀') message = "Hôm nay con rèn luyện thói quen rất tốt, cố gắng phát huy nhé! 🚀";
+            else if (emoji === '⭐') {
+                message = "Mẹ tặng con 50 sao thưởng rèn luyện! Cố lên nhé! ⭐";
+                state.stars += 50;
+                syncStateToUI();
+            }
+            else if (emoji === '👏') message = "Bố mẹ rất tự hào về sự tự lập của con hôm nay! 👏";
+            
+            state.chat.push({
+                sender: "parent",
+                text: message,
+                time: "Vừa xong"
+            });
+            
+            renderChat();
+            saveState();
+            showToast("Lời nhắn đã gửi thành công!");
+        }
+
+        function updateGoalDisplay(type, val) {
+            state.goals[type] = parseInt(val);
+            document.getElementById(`val-${type}`).textContent = `${val} mins`;
+            saveState();
+            syncStateToUI();
+        }
+
+        function changeChart(mode) {
+            const btnLive = document.getElementById('chart-btn-live');
+            const btnWeekly = document.getElementById('chart-btn-weekly');
+            const attentionPath = document.getElementById('attention-path');
+            const motivationPath = document.getElementById('motivation-path');
+            const attentionStat = document.getElementById('attention-stat');
+
+            if (mode === 'live') {
+                btnLive.className = "px-3 py-1 rounded text-[10px] font-mono font-bold bg-white border border-brutalist-dark shadow-[1px_1px_0_rgba(15,23,42,1)] text-brutalist-dark";
+                btnWeekly.className = "px-3 py-1 rounded text-[10px] font-mono font-bold text-slate-500";
+                attentionPath.setAttribute('d', "M0,200 Q100,180 200,100 T400,140 T600,60 T800,115 T1000,40");
+                motivationPath.setAttribute('d', "M0,250 Q150,230 300,180 T600,120 T900,150 T1000,90");
+                attentionStat.textContent = "92% (High Peak)";
+            } else {
+                btnWeekly.className = "px-3 py-1 rounded text-[10px] font-mono font-bold bg-white border border-brutalist-dark shadow-[1px_1px_0_rgba(15,23,42,1)] text-brutalist-dark";
+                btnLive.className = "px-3 py-1 rounded text-[10px] font-mono font-bold text-slate-500";
+                attentionPath.setAttribute('d', "M0,150 L150,130 L300,140 L450,100 L600,80 L750,110 L900,90 L1000,50");
+                motivationPath.setAttribute('d', "M0,180 L150,170 L300,150 L450,130 L600,110 L750,120 L900,100 L1000,80");
+                attentionStat.textContent = "86% Consistency (Weekly)";
+            }
+        }
+
+        function showToast(message) {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = "p-4 rounded-xl border-3 border-brutalist-dark shadow-[3px_3px_0_rgba(15,23,42,1)] flex items-center gap-3 text-xs bg-white text-brutalist-dark font-extrabold toast-animate font-vietnam";
+            toast.innerHTML = `
+                <span class="material-symbols-outlined text-brutalist-purple text-sm">info</span>
+                <span>${message}</span>
+            `;
+            container.appendChild(toast);
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateY(10px)';
+                setTimeout(() => toast.remove(), 400);
+            }, 3000);
+        }
+
+        // =============================================
+        // STUDENT PAGE NAVIGATION
+        // =============================================
+        let activeStudentPage = 'dashboard';
+
+        function showStudentPage(page) {
+            activeStudentPage = page;
+            ['dashboard', 'learning-path', 'library', 'family-hub'].forEach(p => {
+                const el = document.getElementById('student-' + p + '-panel');
+                if (el) el.classList.toggle('hidden', p !== page);
+            });
+            const activeNavClass = 'flex items-center gap-3 px-4 py-3 rounded-2xl bg-brutalist-yellow border-2 border-brutalist-dark brutalist-btn-sm text-brutalist-dark';
+            const inactiveNavClass = 'flex items-center gap-3 px-4 py-3 rounded-2xl bg-white border-2 border-brutalist-dark brutalist-btn-sm text-brutalist-dark';
+            ['dashboard', 'learning-path', 'library', 'family-hub'].forEach(p => {
+                const nav = document.getElementById('snav-' + p);
+                if (nav) nav.className = (p === page ? activeNavClass : inactiveNavClass);
+            });
+            if (page === 'learning-path') renderLearningModules('all');
+            if (page === 'library') { renderLibraryGrid('all'); }
+            if (page === 'family-hub') {
+                const name = currentUser ? currentUser.name : 'Leo';
+                const initials = name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
+                ['fh-my-initials','fh-lb-1-initials'].forEach(id => { const el = document.getElementById(id); if(el) el.textContent = initials; });
+                ['fh-my-name'].forEach(id => { const el = document.getElementById(id); if(el) el.textContent = name; });
+                const lb1 = document.getElementById('fh-lb-1-name'); if(lb1) lb1.textContent = name + ' (Bạn)';
+                const myStreak = document.getElementById('fh-my-streak'); if(myStreak) myStreak.textContent = state.streakDays + ' ngày';
+                const fhStreak = document.getElementById('fh-streak-val'); if(fhStreak) fhStreak.textContent = state.streakDays + ' ngày';
+                renderFamilyHubChat();
+            }
+        }
+
+        // =============================================
+        // LEARNING PATH DATA & LOGIC
+        // =============================================
+        const learningModules = [
+            { id: 1, cat: 'math',    title: 'Hình học cơ bản',          icon: 'category',        color: '#0284C7', progress: 80,  total: 10, done: 8, difficulty: 'Dễ',         xp: 50  },
+            { id: 2, cat: 'math',    title: 'Phân số & Tỉ lệ',           icon: 'calculate',       color: '#0284C7', progress: 40,  total: 10, done: 4, difficulty: 'Trung bình', xp: 80  },
+            { id: 3, cat: 'science', title: 'Hệ Mặt Trời',              icon: 'public',          color: '#10B981', progress: 100, total: 8,  done: 8, difficulty: 'Dễ',         xp: 60  },
+            { id: 4, cat: 'science', title: 'Cơ thể người',              icon: 'accessibility',   color: '#10B981', progress: 60,  total: 10, done: 6, difficulty: 'Trung bình', xp: 70  },
+            { id: 5, cat: 'reading', title: 'Truyện dân gian Việt Nam',  icon: 'auto_stories',    color: '#FF7A45', progress: 50,  total: 6,  done: 3, difficulty: 'Dễ',         xp: 40  },
+            { id: 6, cat: 'science', title: 'Thiên văn học nâng cao',    icon: 'star',            color: '#8B5CF6', progress: 0,   total: 5,  done: 0, difficulty: 'Khó',        xp: 120 },
+        ];
+        const diffColors = { 'Dễ': 'color:#10B981;background:#ECFDF5', 'Trung bình': 'color:#FF7A45;background:#FFF7ED', 'Khó': 'color:#EF4444;background:#FEF2F2' };
+
+        function renderLearningModules(cat) {
+            const grid = document.getElementById('learning-modules-grid');
+            if (!grid) return;
+            const filtered = cat === 'all' ? learningModules : learningModules.filter(m => m.cat === cat);
+            grid.innerHTML = '';
+            filtered.forEach(m => {
+                const isCompleted = m.progress === 100;
+                const card = document.createElement('div');
+                card.className = 'brutalist-card p-5 bg-white flex flex-col gap-3 relative';
+                if (isCompleted) { card.style.borderColor = '#10B981'; card.style.background = '#F0FDF4'; }
+                card.innerHTML = `
+                    ${isCompleted ? '<div class="absolute top-3 right-3 w-6 h-6 rounded-full flex items-center justify-center" style="background:#10B981"><span class="material-symbols-outlined text-white" style="font-size:14px">check</span></div>' : ''}
+                    <div class="flex items-start gap-3">
+                        <div class="w-10 h-10 rounded-xl border-2 border-brutalist-dark flex items-center justify-center flex-shrink-0 shadow-[2px_2px_0_rgba(15,23,42,1)]" style="background:${m.color}22">
+                            <span class="material-symbols-outlined" style="color:${m.color};font-size:20px;font-variation-settings:'FILL' 1">${m.icon}</span>
+                        </div>
+                        <div class="flex-grow min-w-0">
+                            <h4 class="font-vietnam font-black text-sm text-brutalist-dark truncate">${m.title}</h4>
+                            <div class="flex items-center gap-2 mt-1">
+                                <span class="px-2 py-0.5 rounded-full text-[10px] font-black border border-current" style="${diffColors[m.difficulty]}">${m.difficulty}</span>
+                                <span class="text-[10px] font-mono font-bold text-slate-400">+${m.xp} Sao</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="flex justify-between mb-1"><span class="text-[10px] font-bold text-slate-400">${m.done}/${m.total} bài</span><span class="text-[10px] font-mono font-black" style="color:${m.color}">${m.progress}%</span></div>
+                        <div class="w-full h-1.5 bg-brutalist-light-slate rounded-full border border-brutalist-dark overflow-hidden">
+                            <div class="h-full rounded-full" style="width:${m.progress}%;background:${m.color}"></div>
+                        </div>
+                    </div>
+                    <button onclick="showToast('Đang mở: ${m.title}...')" class="w-full py-2 font-black text-xs rounded-xl uppercase tracking-wide ${isCompleted ? 'border-2' : 'brutalist-btn-sm'}" style="${isCompleted ? 'background:#ECFDF5;color:#10B981;border-color:#10B981' : 'background:#FBBF24;color:#0F172A;border:2px solid #0F172A'}">
+                        ${isCompleted ? '✓ Đã hoàn thành' : 'Tiếp tục học →'}
+                    </button>
+                `;
+                grid.appendChild(card);
+            });
+            ['all','math','science','reading'].forEach(c => {
+                const btn = document.getElementById('lm-filter-' + c);
+                if (btn) btn.className = (c === cat)
+                    ? 'px-3 py-1 rounded-full text-xs font-black border-2 border-brutalist-dark bg-brutalist-dark text-white brutalist-btn-sm'
+                    : 'px-3 py-1 rounded-full text-xs font-black border-2 border-brutalist-dark bg-white text-brutalist-dark brutalist-btn-sm';
+            });
+        }
+
+        function filterLearningModules(cat) { renderLearningModules(cat); }
+
+        // =============================================
+        // LIBRARY DATA & LOGIC
+        // =============================================
+        const libraryBooks = [
+            { id: 1, cat: 'science',    title: 'Hành trình đến các vì sao', icon: 'rocket_launch',   c1: '#8B5CF6', c2: '#0284C7', pages: 200, time: '4h',   isNew: false, rating: 5 },
+            { id: 2, cat: 'math',       title: 'Toán vui cho trẻ em',       icon: 'calculate',       c1: '#FBBF24', c2: '#FF7A45', pages: 150, time: '3h',   isNew: false, rating: 4 },
+            { id: 3, cat: 'literature', title: 'Truyện cổ tích Việt Nam',   icon: 'auto_stories',    c1: '#10B981', c2: '#0284C7', pages: 180, time: '3.5h', isNew: true,  rating: 5 },
+            { id: 4, cat: 'history',    title: 'Lịch sử Việt Nam cho bé',   icon: 'account_balance', c1: '#FF7A45', c2: '#FBBF24', pages: 120, time: '2h',   isNew: true,  rating: 4 },
+            { id: 5, cat: 'science',    title: 'Cơ thể con người kỳ diệu',  icon: 'accessibility',   c1: '#EC4899', c2: '#8B5CF6', pages: 160, time: '3h',   isNew: false, rating: 5 },
+            { id: 6, cat: 'math',       title: 'Hình học và cuộc sống',     icon: 'category',        c1: '#0284C7', c2: '#10B981', pages: 140, time: '2.5h', isNew: false, rating: 4 },
+            { id: 7, cat: 'literature', title: 'Thơ thiếu nhi Việt Nam',    icon: 'edit_note',       c1: '#FBBF24', c2: '#EC4899', pages: 100, time: '2h',   isNew: true,  rating: 5 },
+            { id: 8, cat: 'history',    title: 'Các nhà khoa học vĩ đại',   icon: 'science',         c1: '#8B5CF6', c2: '#FF7A45', pages: 200, time: '4h',   isNew: false, rating: 5 },
+        ];
+        let libActiveCat = 'all', libSearchQuery = '';
+
+        function filterLibraryByCategory(cat) {
+            libActiveCat = cat;
+            ['all','science','math','literature','history'].forEach(c => {
+                const btn = document.getElementById('lib-cat-' + c);
+                if (btn) btn.className = (c === cat)
+                    ? 'px-3 py-1 rounded-full text-xs font-black border-2 border-brutalist-dark bg-brutalist-dark text-white brutalist-btn-sm'
+                    : 'px-3 py-1 rounded-full text-xs font-black border-2 border-brutalist-dark bg-white text-brutalist-dark brutalist-btn-sm';
+            });
+            renderLibraryGrid(cat);
+        }
+
+        function filterLibrary() {
+            libSearchQuery = (document.getElementById('library-search')?.value || '').toLowerCase();
+            renderLibraryGrid(libActiveCat);
+        }
+
+        function renderLibraryGrid(cat) {
+            const grid = document.getElementById('library-grid');
+            if (!grid) return;
+            let filtered = libraryBooks.filter(b => cat === 'all' || b.cat === cat);
+            if (libSearchQuery) filtered = filtered.filter(b => b.title.toLowerCase().includes(libSearchQuery));
+            const countEl = document.getElementById('library-count'); if (countEl) countEl.textContent = '(' + filtered.length + ')';
+            grid.innerHTML = '';
+            if (!filtered.length) { grid.innerHTML = '<p class="col-span-4 text-center text-slate-400 font-semibold py-8">Không tìm thấy tài liệu phù hợp.</p>'; return; }
+            filtered.forEach(b => {
+                const stars = '⭐'.repeat(b.rating);
+                const card = document.createElement('div');
+                card.className = 'brutalist-card p-4 bg-white flex flex-col gap-3 cursor-pointer';
+                card.innerHTML = `
+                    <div class="relative w-full rounded-xl border-2 border-brutalist-dark flex items-center justify-center overflow-hidden shadow-[3px_3px_0_rgba(15,23,42,1)]" style="aspect-ratio:3/4;background:linear-gradient(135deg,${b.c1},${b.c2})">
+                        <span class="material-symbols-outlined text-white" style="font-size:40px;font-variation-settings:'FILL' 1">${b.icon}</span>
+                        ${b.isNew ? '<span class="absolute top-2 left-2 text-[9px] font-black bg-brutalist-yellow border border-brutalist-dark text-brutalist-dark px-1.5 py-0.5 rounded-full">MỚI</span>' : ''}
+                    </div>
+                    <div class="flex-grow">
+                        <p class="font-vietnam font-black text-xs text-brutalist-dark leading-tight">${b.title}</p>
+                        <p class="text-[9px] font-mono text-slate-400 mt-1">${b.pages} trang · ${b.time}</p>
+                        <p class="mt-1" style="font-size:10px">${stars}</p>
+                    </div>
+                    <button onclick="showToast('Đang mở: ${b.title}')" class="w-full py-1.5 bg-brutalist-yellow text-brutalist-dark font-black rounded-lg border-2 border-brutalist-dark brutalist-btn-sm uppercase" style="font-size:10px">Đọc ngay</button>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        // =============================================
+        // FAMILY HUB CHAT LOGIC
+        // =============================================
+        function renderFamilyHubChat() {
+            const box = document.getElementById('fh-chat-box');
+            if (!box) return;
+            box.innerHTML = '';
+            state.chat.forEach(msg => {
+                const wrap = document.createElement('div');
+                wrap.className = msg.sender === 'student' ? 'flex justify-end' : 'flex justify-start';
+                const bubble = document.createElement('div');
+                bubble.className = msg.sender === 'student'
+                    ? 'bg-brutalist-yellow border-2 border-brutalist-dark rounded-2xl rounded-tr-none p-3 max-w-[80%] shadow-[2px_2px_0_rgba(15,23,42,1)]'
+                    : 'bg-white border-2 border-brutalist-dark rounded-2xl rounded-tl-none p-3 max-w-[80%] shadow-[2px_2px_0_rgba(15,23,42,1)]';
+                bubble.innerHTML = '<p class="text-xs font-bold">' + msg.text + '</p><p class="text-[9px] mt-1 text-slate-400 font-bold">' + msg.time + '</p>';
+                wrap.appendChild(bubble);
+                box.appendChild(wrap);
+            });
+            box.scrollTop = box.scrollHeight;
+        }
+
+        function sendFamilyMessage() {
+            const input = document.getElementById('fh-chat-input');
+            if (!input || !input.value.trim()) return;
+            state.chat.push({ sender: 'student', text: input.value.trim(), time: 'Vừa xong' });
+            input.value = '';
+            renderFamilyHubChat();
+            saveState();
+            setTimeout(() => {
+                state.chat.push({ sender: 'parent', text: 'Bố/mẹ tự hào về con! Cố lên nhé! ❤️', time: 'Vừa xong' });
+                renderFamilyHubChat();
+                saveState();
+            }, 2500);
+        }
+
+        function sendFamilyQuick(msg) {
+            state.chat.push({ sender: 'student', text: msg, time: 'Vừa xong' });
+            renderFamilyHubChat();
+            saveState();
+            showToast('Đã gửi tin nhắn!');
+        }
+
+        window.addEventListener('load', initSystem);
+    </script>
+</body>
+</html>

@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html class="light" lang="vi">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>Nexora AI | Đăng Nhập & Đăng Ký</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <!-- Fonts - Be Vietnam Pro with Vietnamese subset support -->
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+    <!-- Material Symbols -->
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+    
+    <!-- Google Identity Services Library -->
+    <script src="https://accounts.google.com/gsi/client" onload="tryInitGoogle()" async defer></script>
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        "brutalist-yellow": "#FBBF24",
+                        "brutalist-orange": "#FF7A45",
+                        "brutalist-purple": "#8B5CF6",
+                        "brutalist-cream": "#FAF9F5",
+                        "brutalist-dark": "#0F172A",
+                        "brutalist-light-slate": "#F1F5F9"
+                    },
+                    fontFamily: {
+                        "vietnam": ["Be Vietnam Pro", "sans-serif"],
+                        "inter": ["Inter", "sans-serif"]
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #FAF9F5;
+            color: #0F172A;
+            font-family: 'Be Vietnam Pro', sans-serif;
+        }
+
+        .brutalist-card {
+            background: #ffffff;
+            border: 3px solid #0F172A;
+            box-shadow: 6px 6px 0px 0px #0F172A;
+            border-radius: 16px;
+        }
+
+        .brutalist-btn {
+            border: 3px solid #0F172A;
+            box-shadow: 4px 4px 0px 0px #0F172A;
+            transition: all 0.15s ease-in-out;
+        }
+
+        .brutalist-btn:hover {
+            transform: translate(-1px, -1px);
+            box-shadow: 5px 5px 0px 0px #0F172A;
+        }
+
+        .brutalist-btn:active {
+            transform: translate(3px, 3px);
+            box-shadow: 1px 1px 0px 0px #0F172A;
+        }
+
+        .brutalist-btn-sm {
+            border: 2px solid #0F172A;
+            box-shadow: 2px 2px 0px 0px #0F172A;
+            transition: all 0.1s ease-in-out;
+        }
+
+        .brutalist-btn-sm:hover {
+            transform: translate(-1px, -1px);
+            box-shadow: 3px 3px 0px 0px #0F172A;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-6">
+
+    <!-- ==============================================
+         SOCIAL LOGIN ROLE SELECTION MODAL
+         ============================================== -->
+    <div id="social-role-modal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-md z-[200] hidden flex items-center justify-center p-4">
+        <div class="w-full max-w-md bg-white border-4 border-brutalist-dark rounded-3xl p-8 relative shadow-[8px_8px_0_rgba(15,23,42,1)]">
+            <h2 class="font-vietnam text-2xl font-black text-brutalist-dark text-center mb-2">Hoàn tất tài khoản liên kết</h2>
+            <p class="text-xs text-slate-500 font-bold text-center mb-6">Vui lòng chọn vai trò học tập của bạn để bắt đầu</p>
+            
+            <div class="grid grid-cols-2 gap-4 mb-6">
+                <label id="role-option-student" onclick="selectSocialRole('student')" class="brutalist-card p-4 flex flex-col items-center justify-center cursor-pointer border-3 border-brutalist-dark bg-white hover:bg-brutalist-yellow/10">
+                    <span class="material-symbols-outlined text-3xl mb-2 text-brutalist-yellow">school</span>
+                    <span class="text-xs font-black">Học sinh</span>
+                </label>
+                <label id="role-option-parent" onclick="selectSocialRole('parent')" class="brutalist-card p-4 flex flex-col items-center justify-center cursor-pointer border-3 border-brutalist-dark bg-white hover:bg-brutalist-purple/10">
+                    <span class="material-symbols-outlined text-3xl mb-2 text-brutalist-purple">family_restroom</span>
+                    <span class="text-xs font-black">Phụ huynh</span>
+                </label>
+            </div>
+            <button onclick="submitSocialRegistration()" class="w-full py-3 bg-brutalist-yellow text-brutalist-dark font-black text-sm rounded-xl brutalist-btn uppercase tracking-wider">
+                Xác nhận & Vào Dashboard
+            </button>
+        </div>
+    </div>
+
+    <!-- MAIN CARD -->
+    <div class="w-full max-w-md brutalist-card p-8 bg-white relative">
+        <!-- Brand header -->
+        <div class="flex items-center justify-center gap-3 mb-8">
+            <span class="font-vietnam text-3xl font-black tracking-tight text-brutalist-dark">Nexora</span>
+            <span class="text-[10px] font-mono font-black text-white bg-brutalist-purple border-2 border-brutalist-dark px-2 py-0.5 rounded-full">REAL KERNEL</span>
+        </div>
+
+        <!-- Alert Notification Box -->
+        <div id="error-alert" class="hidden mb-6 p-4 border-2 border-red-500 bg-red-50 text-red-700 font-bold text-xs rounded-xl flex items-center gap-2">
+            <span class="material-symbols-outlined text-sm">warning</span>
+            <span id="error-msg">Đã xảy ra lỗi</span>
+        </div>
+
+        <!-- ==============================================
+             OTP VERIFICATION CONTAINER (HIDDEN BY DEFAULT)
+             ============================================== -->
+        <div id="otp-verification-container" class="hidden space-y-6">
+            <div class="text-center">
+                <span class="material-symbols-outlined text-5xl text-brutalist-purple mb-2">mark_email_read</span>
+                <h3 class="font-vietnam text-xl font-black text-brutalist-dark">Xác minh mã OTP</h3>
+                <p id="otp-instruction" class="text-xs text-slate-500 font-bold mt-1">Chúng tôi đã gửi mã xác thực gồm 6 chữ số đến email của bạn.</p>
+            </div>
+            
+            <form onsubmit="handleVerifyOTP(event)" class="space-y-4">
+                <div>
+                    <label class="text-xs font-bold uppercase tracking-wider block mb-1">Mã OTP (6 chữ số)</label>
+                    <input id="otp-code" type="text" required maxlength="6" class="w-full bg-[#FAF9F5] border-2 border-brutalist-dark rounded-xl py-3 px-4 text-center text-lg font-black tracking-[8px] focus:outline-none focus:bg-white transition-all shadow-[2px_2px_0_rgba(15,23,42,1)]" placeholder="123456"/>
+                </div>
+                <button type="submit" class="w-full py-3.5 bg-brutalist-green text-white font-black text-sm rounded-xl brutalist-btn uppercase tracking-wider">
+                    Xác minh tài khoản
+                </button>
+            </form>
+            <button onclick="toggleMode('register')" class="w-full text-xs font-bold text-slate-400 hover:text-brutalist-dark text-center mt-2 block">
+                Quay lại màn hình Đăng ký
+            </button>
+        </div>
+
+        <!-- ==============================================
+             AUTH PORTAL CONTAINING FORMS
+             ============================================== -->
+        <div id="auth-forms-container">
+            <!-- Mode Toggle Tabs -->
+            <div class="grid grid-cols-2 gap-2 p-1 bg-brutalist-light-slate border-2 border-brutalist-dark rounded-xl mb-8 font-vietnam font-black text-xs">
+                <button id="tab-login" onclick="toggleMode('login')" class="py-2.5 rounded-lg bg-white border border-brutalist-dark shadow-[1px_1px_0_rgba(15,23,42,1)] text-brutalist-dark">
+                    Đăng Nhập
+                </button>
+                <button id="tab-register" onclick="toggleMode('register')" class="py-2.5 rounded-lg text-slate-500 hover:text-brutalist-dark">
+                    Đăng Ký
+                </button>
+            </div>
+
+            <!-- LOGIN FORM -->
+            <form id="login-form" onsubmit="handleLogin(event)" class="space-y-5">
+                <div>
+                    <label class="text-xs font-bold uppercase tracking-wider block mb-1">Email thành viên</label>
+                    <input id="login-email" type="email" required class="w-full bg-[#FAF9F5] border-2 border-brutalist-dark rounded-xl py-2.5 px-4 text-xs font-bold focus:outline-none focus:bg-white transition-all shadow-[2px_2px_0_rgba(15,23,42,1)]" placeholder="con@nexora.com hoặc me@nexora.com"/>
+                </div>
+                <div>
+                    <label class="text-xs font-bold uppercase tracking-wider block mb-1">Mật khẩu</label>
+                    <input id="login-password" type="password" required class="w-full bg-[#FAF9F5] border-2 border-brutalist-dark rounded-xl py-2.5 px-4 text-xs font-bold focus:outline-none focus:bg-white transition-all shadow-[2px_2px_0_rgba(15,23,42,1)]" placeholder="••••••••"/>
+                </div>
+                <button type="submit" class="w-full py-3.5 bg-brutalist-yellow text-brutalist-dark font-black text-sm rounded-xl brutalist-btn uppercase tracking-wider">
+                    Vào ứng dụng
+                </button>
+            </form>
+
+            <!-- REGISTER FORM -->
+            <form id="register-form" onsubmit="handleRegister(event)" class="space-y-5 hidden">
+                <div>
+                    <label class="text-xs font-bold uppercase tracking-wider block mb-1">Họ tên của bạn</label>
+                    <input id="register-name" type="text" required class="w-full bg-[#FAF9F5] border-2 border-brutalist-dark rounded-xl py-2.5 px-4 text-xs font-bold focus:outline-none focus:bg-white transition-all shadow-[2px_2px_0_rgba(15,23,42,1)]" placeholder="Nguyễn Văn A"/>
+                </div>
+                <div>
+                    <label class="text-xs font-bold uppercase tracking-wider block mb-1">Email đăng ký</label>
+                    <input id="register-email" type="email" required class="w-full bg-[#FAF9F5] border-2 border-brutalist-dark rounded-xl py-2.5 px-4 text-xs font-bold focus:outline-none focus:bg-white transition-all shadow-[2px_2px_0_rgba(15,23,42,1)]" placeholder="vi_du@nexora.com"/>
+                </div>
+                <div>
+                    <label class="text-xs font-bold uppercase tracking-wider block mb-1">Mật khẩu</label>
+                    <input id="register-password" type="password" required class="w-full bg-[#FAF9F5] border-2 border-brutalist-dark rounded-xl py-2.5 px-4 text-xs font-bold focus:outline-none focus:bg-white transition-all shadow-[2px_2px_0_rgba(15,23,42,1)]" placeholder="••••••••"/>
+                </div>
+                <div>
+                    <label class="text-xs font-bold uppercase tracking-wider block mb-1">Bạn tham gia với tư cách nào?</label>
+                    <div class="grid grid-cols-2 gap-4 mt-2">
+                        <label class="brutalist-card p-3 flex items-center justify-center gap-2 cursor-pointer border-2 hover:bg-slate-50">
+                            <input type="radio" name="register-role" value="student" checked class="accent-brutalist-dark"/>
+                            <span class="text-xs font-bold">Học sinh</span>
+                        </label>
+                        <label class="brutalist-card p-3 flex items-center justify-center gap-2 cursor-pointer border-2 hover:bg-slate-50">
+                            <input type="radio" name="register-role" value="parent" class="accent-brutalist-dark"/>
+                            <span class="text-xs font-bold">Phụ huynh</span>
+                        </label>
+                    </div>
+                </div>
+                <button type="submit" class="w-full py-3.5 bg-brutalist-purple text-white font-black text-sm rounded-xl brutalist-btn uppercase tracking-wider">
+                    Gửi mã OTP đăng ký
+                </button>
+            </form>
+
+            <!-- Social Logins (Google & Facebook) Divider -->
+            <div class="relative my-8 text-center">
+                <span class="h-[2px] bg-brutalist-dark/10 w-full block"></span>
+                <span class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white px-3 text-[10px] font-mono font-black uppercase text-slate-400">hoặc đăng nhập bằng</span>
+            </div>
+
+            <!-- Social Buttons Container -->
+            <div class="flex flex-col gap-3">
+                <!-- Real Google Button Container -->
+                <div id="google-btn-container" class="flex justify-center w-full"></div>
+                
+                <!-- Facebook Login Button -->
+                <button onclick="loginWithFacebook()" class="flex items-center justify-center gap-3 w-full py-3 bg-[#1877F2] text-white font-black text-xs rounded-xl brutalist-btn uppercase tracking-wider">
+                    <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+                    Đăng nhập bằng Facebook
+                </button>
+            </div>
+        </div>
+
+        <div class="mt-8 border-t-2 border-dashed border-brutalist-dark pt-6 text-center">
+            <a href="/" class="text-xs font-bold text-slate-500 hover:text-brutalist-dark flex items-center justify-center gap-1">
+                <span class="material-symbols-outlined text-sm">arrow_back</span> Quay lại Trang chủ
+            </a>
+        </div>
+    </div>
+
+    <!-- Facebook SDK load -->
+    <div id="fb-root"></div>
+    <script async defer crossorigin="anonymous" src="https://connect.facebook.net/vi_VN/sdk.js"></script>
+
+    <script>
+        let currentMode = "login";
+        let config = { googleClientId: '', facebookAppId: '' };
+        let pendingSocialUser = null; // Stores social info if role selection is needed
+        let pendingEmail = ''; // Stores email during OTP verification
+
+        let googleInitialized = false;
+        function tryInitGoogle() {
+            if (googleInitialized) return;
+            if (typeof google !== 'undefined' && google.accounts && config.googleClientId) {
+                google.accounts.id.initialize({
+                    client_id: config.googleClientId,
+                    callback: handleGoogleCredentialResponse
+                });
+                google.accounts.id.renderButton(
+                    document.getElementById("google-btn-container"),
+                    { theme: "outline", size: "large", width: 350 }
+                );
+                googleInitialized = true;
+            }
+        }
+
+        // Load credentials configuration from server
+        async function fetchConfig() {
+            try {
+                const res = await fetch('/api/config');
+                config = await res.json();
+                
+                // Initialize Google GSI
+                if (config.googleClientId) {
+                    tryInitGoogle();
+                }
+
+                // Initialize Facebook SDK
+                if (config.facebookAppId) {
+                    window.fbAsyncInit = function() {
+                        FB.init({
+                            appId      : config.facebookAppId,
+                            cookie     : true,
+                            xfbml      : true,
+                            version    : 'v18.0'
+                        });
+                    };
+                }
+            } catch (error) {
+                console.error("Lỗi khi tải cấu hình khóa OAuth:", error);
+            }
+        }
+
+        // Handle Google Response Token
+        async function handleGoogleCredentialResponse(response) {
+            const credential = response.credential;
+            try {
+                const res = await fetch('/api/auth/google', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ credential })
+                });
+
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.error || 'Đăng nhập Google thất bại.');
+
+                handleAuthResponse(data);
+            } catch (err) {
+                showAlert(err.message);
+            }
+        }
+
+        // Trigger Facebook OAuth login popup
+        function loginWithFacebook() {
+            if (!config.facebookAppId) {
+                showAlert("Khóa ứng dụng Facebook chưa được thiết lập.");
+                return;
+            }
+
+            FB.login(async function(response) {
+                if (response.authResponse) {
+                    const accessToken = response.authResponse.accessToken;
+                    try {
+                        const res = await fetch('/api/auth/facebook', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ accessToken })
+                        });
+
+                        const data = await res.json();
+                        if (!res.ok) throw new Error(data.error || 'Đăng nhập Facebook thất bại.');
+
+                        handleAuthResponse(data);
+                    } catch (err) {
+                        showAlert(err.message);
+                    }
+                } else {
+                    showAlert('Đăng nhập Facebook bị hủy bỏ.');
+                }
+            }, { scope: 'email,public_profile' });
+        }
+
+        // Process response for role selection modal check
+        function handleAuthResponse(data) {
+            if (data.isNewSocialUser) {
+                // Show role selection modal for new social accounts
+                pendingSocialUser = data.socialUser;
+                selectSocialRole('student'); // Select default student
+                document.getElementById('social-role-modal').classList.remove('hidden');
+            } else {
+                // Save session and redirect
+                localStorage.setItem('nexora_user_session', JSON.stringify(data.user));
+                localStorage.setItem('nexora_active_role', data.user.role);
+                window.location.href = '/';
+            }
+        }
+
+        // Role selection style toggles
+        function selectSocialRole(role) {
+            if (!pendingSocialUser) return;
+            pendingSocialUser.role = role;
+            
+            const btnStudent = document.getElementById('role-option-student');
+            const btnParent = document.getElementById('role-option-parent');
+
+            if (role === 'student') {
+                btnStudent.className = "brutalist-card p-4 flex flex-col items-center justify-center cursor-pointer border-3 border-brutalist-dark bg-brutalist-yellow/15 shadow-[4px_4px_0_rgba(15,23,42,1)]";
+                btnParent.className = "brutalist-card p-4 flex flex-col items-center justify-center cursor-pointer border-3 border-brutalist-dark bg-white hover:bg-brutalist-purple/5";
+            } else {
+                btnParent.className = "brutalist-card p-4 flex flex-col items-center justify-center cursor-pointer border-3 border-brutalist-dark bg-brutalist-purple/15 shadow-[4px_4px_0_rgba(15,23,42,1)]";
+                btnStudent.className = "brutalist-card p-4 flex flex-col items-center justify-center cursor-pointer border-3 border-brutalist-dark bg-white hover:bg-brutalist-yellow/5";
+            }
+        }
+
+        // Submit social account registration with selected role
+        async function submitSocialRegistration() {
+            if (!pendingSocialUser || !pendingSocialUser.role) return;
+
+            try {
+                const res = await fetch('/api/auth/social-register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(pendingSocialUser)
+                });
+
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.error || 'Hoàn tất liên kết thất bại.');
+
+                document.getElementById('social-role-modal').classList.add('hidden');
+                localStorage.setItem('nexora_user_session', JSON.stringify(data.user));
+                localStorage.setItem('nexora_active_role', data.user.role);
+                window.location.href = '/';
+            } catch (err) {
+                showAlert(err.message);
+            }
+        }
+
+        function toggleMode(mode) {
+            currentMode = mode;
+            const tabLogin = document.getElementById('tab-login');
+            const tabRegister = document.getElementById('tab-register');
+            const loginForm = document.getElementById('login-form');
+            const registerForm = document.getElementById('register-form');
+            const otpContainer = document.getElementById('otp-verification-container');
+            const authFormsContainer = document.getElementById('auth-forms-container');
+            const errorAlert = document.getElementById('error-alert');
+
+            errorAlert.classList.add('hidden');
+            otpContainer.classList.add('hidden');
+            authFormsContainer.classList.remove('hidden');
+
+            if (mode === 'login') {
+                tabLogin.className = "py-2.5 rounded-lg bg-white border border-brutalist-dark shadow-[1px_1px_0_rgba(15,23,42,1)] text-brutalist-dark";
+                tabRegister.className = "py-2.5 rounded-lg text-slate-500 hover:text-brutalist-dark";
+                loginForm.classList.remove('hidden');
+                registerForm.classList.add('hidden');
+            } else {
+                tabRegister.className = "py-2.5 rounded-lg bg-white border border-brutalist-dark shadow-[1px_1px_0_rgba(15,23,42,1)] text-brutalist-dark";
+                tabLogin.className = "py-2.5 rounded-lg text-slate-500 hover:text-brutalist-dark";
+                loginForm.classList.add('hidden');
+                registerForm.classList.remove('hidden');
+            }
+        }
+
+        function showAlert(msg) {
+            const errorAlert = document.getElementById('error-alert');
+            const errorMsg = document.getElementById('error-msg');
+            errorMsg.textContent = msg;
+            errorAlert.classList.remove('hidden');
+        }
+
+        async function handleLogin(e) {
+            e.preventDefault();
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+
+            try {
+                const response = await fetch('/api/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+
+                const data = await response.json();
+                if (!response.ok) {
+                    throw new Error(data.error || 'Đăng nhập thất bại.');
+                }
+
+                // Save session in localStorage
+                localStorage.setItem('nexora_user_session', JSON.stringify(data.user));
+                localStorage.setItem('nexora_active_role', data.user.role);
+                window.location.href = '/';
+            } catch (err) {
+                showAlert(err.message);
+            }
+        }
+
+        async function handleRegister(e) {
+            e.preventDefault();
+            const name = document.getElementById('register-name').value;
+            const email = document.getElementById('register-email').value;
+            const password = document.getElementById('register-password').value;
+            const role = document.querySelector('input[name="register-role"]:checked').value;
+
+            try {
+                const response = await fetch('/api/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, email, password, role })
+                });
+
+                const data = await response.json();
+                if (!response.ok) {
+                    throw new Error(data.error || 'Gửi OTP đăng ký thất bại.');
+                }
+
+                // Show OTP verification form
+                pendingEmail = email;
+                document.getElementById('otp-instruction').textContent = `Mã xác thực gồm 6 chữ số đã được gửi đến email: ${email}`;
+                document.getElementById('auth-forms-container').classList.add('hidden');
+                document.getElementById('otp-verification-container').classList.remove('hidden');
+            } catch (err) {
+                showAlert(err.message);
+            }
+        }
+
+        async function handleVerifyOTP(e) {
+            e.preventDefault();
+            const otp = document.getElementById('otp-code').value.trim();
+
+            try {
+                const response = await fetch('/api/verify-otp', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email: pendingEmail, otp })
+                });
+
+                const data = await response.json();
+                if (!response.ok) {
+                    throw new Error(data.error || 'Mã xác thực OTP không chính xác.');
+                }
+
+                // Save session in localStorage and redirect
+                localStorage.setItem('nexora_user_session', JSON.stringify(data.user));
+                localStorage.setItem('nexora_active_role', data.user.role);
+                window.location.href = '/';
+            } catch (err) {
+                showAlert(err.message);
+            }
+        }
+
+        window.addEventListener('load', () => {
+            if (localStorage.getItem('nexora_user_session')) {
+                window.location.href = '/';
+            }
+            fetchConfig();
+        });
+    </script>
+</body>
+</html>
